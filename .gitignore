@@ -32,7 +32,6 @@ bld/
 
 **/publish/
 
-[Pp]roperties
 [Aa]pp.config
 [Aa]ppsettings*.json
 [Aa]ppsettings.*.json
