@@ -12,19 +12,16 @@ namespace Projeto.Models
             set => sessao.DefinirUsuarioLogado(value);
         }
 
+        public bool UsuarioEstaLogado { get => usuarioLogado != null && usuarioLogado.Id > 0; }
+
         private Sessao buscarSessao()
         {
             return new Sessao(HttpContext);
         }
 
-        protected bool UsuarioEstaLogado()
+        protected void Logoff()
         {
-            return usuarioLogado != null && usuarioLogado.Id > 0;
-        }
-
-        protected bool UsuarioNaoLogado()
-        {
-            return !UsuarioEstaLogado();
+            usuarioLogado = null;
         }
     }
 }

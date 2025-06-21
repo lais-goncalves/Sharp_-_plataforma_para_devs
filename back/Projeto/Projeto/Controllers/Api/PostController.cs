@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Projeto.Banco;
-using Projeto.Config;
 using Projeto.Models;
 
 namespace Projeto.Controllers.Api
@@ -13,19 +11,14 @@ namespace Projeto.Controllers.Api
         {
             try
             {
-                Resultado<Post?> resultadoBusca = Post.BuscarPorId(id);
+                Post? post = Post.BuscarPorId(id);
 
-                if (resultadoBusca.Erro != null)
+                if (post == null)
                 {
-                    return BadRequest(resultadoBusca.Erro.Message);
+                    return Ok();
                 }
 
-                if (resultadoBusca.Item == null)
-                {
-                    return Ok("Nenhum post encontrado.");
-                }
-
-                return Ok(resultadoBusca.Item);
+                return Ok(post);
             }
 
             catch (Exception err)
@@ -39,19 +32,14 @@ namespace Projeto.Controllers.Api
         {
             try
             {
-                Resultado<List<Post>?> resultadoBusca = Post.BuscarTodos();
+                List<Post?>? posts = Post.BuscarTodos();
 
-                if (resultadoBusca.Erro != null)
+                if (posts == null || posts.Count <= 0)
                 {
-                    return BadRequest("Ocorreu um erro ao tentar buscar os posts.");
+                    return Ok();
                 }
 
-                if (resultadoBusca.Item == null || resultadoBusca.Item.Count <= 0)
-                {
-                    return Ok("Nenhum post foi encontrado.");
-                }
-
-                return Ok(resultadoBusca.Item);
+                return Ok(posts);
             }
 
             catch (Exception err)
@@ -65,35 +53,19 @@ namespace Projeto.Controllers.Api
         {
             try
             {
-                // 1 - verificar se usuário está logado
-                // 2 - adicionar ao banco
-                // 3 - verificar se postou com sucesso
-
-
-                // 1
-                if (UsuarioNaoLogado())
+                if (!UsuarioEstaLogado)
                 {
                     throw new Exception("Você deve estar logado para poder postar.");
                 }
 
+                string? idResultado = Post.Postar(tipo, titulo, texto, usuarioLogado);
 
-                // 2
-                Post post = new() { Tipo = tipo, Titulo = titulo, Texto = texto };
-                Resultado<string?> resultadoPostarNoBanco = post.Postar(usuarioLogado);
-
-
-                // 3
-                if (resultadoPostarNoBanco.Item == null)
+                if (idResultado == null)
                 {
-                    return BadRequest("Ocorreu um problema ao tentar postar. Por favor, recarregue a página.");
+                    throw new Exception("Não foi possível postar. Tente Novamente.");
                 }
 
-                if (resultadoPostarNoBanco.Item == null)
-                {
-                    return BadRequest("Não foi possível postar.");
-                }
-
-                return Ok(resultadoPostarNoBanco.Item);
+                return Ok(idResultado);
             }
 
             catch (Exception err)

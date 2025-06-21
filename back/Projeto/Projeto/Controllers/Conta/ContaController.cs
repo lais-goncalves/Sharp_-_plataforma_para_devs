@@ -1,24 +1,18 @@
-﻿using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using Projeto.Banco;
-using Projeto.Config;
+﻿using Microsoft.AspNetCore.Mvc;
 using Projeto.Models;
 
 namespace Projeto.Controllers.Conta
 {
     [Route("[controller]/[action]")]
-    public class ContaController : Controller {
+    public class ContaController : ControllerComSession {
         [HttpGet]
         public ActionResult BuscarUsuario()
         {
             try
             {
-                Sessao sessao = new (HttpContext);
-                Usuario? usuarioLogado = sessao.BuscarUsuarioLogado();
-
-                if (Usuario.Existe(usuarioLogado))
+                if (!UsuarioEstaLogado)
                 {
-                    return Ok(null);
+                    return Ok("Usuário não logado.");
                 }
 
                 return Ok(usuarioLogado);
@@ -35,22 +29,24 @@ namespace Projeto.Controllers.Conta
         {
             // TODO: ESCAPAR CARACTERES DO APELIDO E DA SENHA
 
-            try
-            {
-                Resultado<bool> registroEfetuado = Usuario.Registrar(apelido, senha);
+            //try
+            //{
+            //    Resultado<bool> registroEfetuado = Usuario.Registrar(apelido, senha);
 
-                if (registroEfetuado.Erro != null)
-                {
-                    throw registroEfetuado.Erro;
-                }
+            //    if (registroEfetuado.Erro != null)
+            //    {
+            //        throw registroEfetuado.Erro;
+            //    }
 
-                return Ok(registroEfetuado.Item);
-            }
+            //    return Ok(registroEfetuado.Item);
+            //}
 
-            catch(Exception err)
-            {
-                return BadRequest(err.Message);
-            }
+            //catch(Exception err)
+            //{
+            //    return BadRequest(err.Message);
+            //}
+
+            return Ok();
         }
 
         [HttpPost]
@@ -58,30 +54,14 @@ namespace Projeto.Controllers.Conta
         {
             try
             {
-                Usuario? usuarioLogado;
-                Resultado<Usuario?> loginEfetuado = Usuario.VerificarLogin(apelido, senha);
+                Usuario? usuario = Usuario.LoginOk(apelido, senha);
 
-                if (loginEfetuado.Erro != null)
-                {
-                    throw loginEfetuado.Erro;
-                }
-
-                usuarioLogado = loginEfetuado.Item;
-
-                if (usuarioLogado == null)
+                if (usuario == null)
                 {
                     throw new Exception("Usuário e/ou senha incorreto(s).");
                 }
 
-                Sessao sessao = new(HttpContext);
-                sessao.DefinirUsuarioLogado(usuarioLogado);
-                usuarioLogado = sessao.BuscarUsuarioLogado();
-
-                if (usuarioLogado == null)
-                {
-                    throw new Exception("Usuário inválido.");
-                }
-
+                usuarioLogado = usuario;
                 return Ok(usuarioLogado);
             }
 
@@ -92,17 +72,16 @@ namespace Projeto.Controllers.Conta
         }
 
         [HttpPost]
-        public ActionResult Logoff()
+        public new ActionResult Logoff()
         {
             try
             {
-                Sessao sessao = new (HttpContext);
-                sessao.DefinirUsuarioLogado(null);
+                Logoff();
+                return Ok("Logoff efetuado com sucesso.");
+            }
 
-                return Ok();
-            } 
-            
-            catch(Exception err) {
+            catch (Exception err)
+            {
                 return BadRequest(err.Message);
             }
         }

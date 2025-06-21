@@ -1,33 +1,32 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
-using Projeto.Banco;
+using Projeto.Dados;
 
 namespace Projeto.Models
 {
-    [NomeDaTabela("Post")]
-    public class Post : Tabela<Post>
+    public class Post : ITabela<Post>
     {
         #region Propriedades
-        [System.Text.Json.Serialization.JsonIgnore, Key]
-        public string Id { get; set; }
+        public static Conexao conexao { get; } = Conexao.instancia;
+        public static string nomeDaTabela { get; } = "Post";
+        public string? Id { get; set; }
         public string? Tipo { get; set; }
         public string? Titulo { get; set; }
-        public string Texto { get; set; }
-        public int PostadoPor { get; set; }
-        public DateTime PostadoEm { get; set; }
+        public string? Texto { get; set; }
+        public int? PostadoPor { get; set; }
+        public DateTime? PostadoEm { get; set; }
         #endregion Propriedades
 
 
         #region Construtores
         [JsonConstructor]
         public Post(
-            string id, 
-            string tipo, 
-            string titulo, 
-            string texto, 
-            int postado_por, 
-            DateTime postado_em
+            string? id,
+            string? tipo,
+            string? titulo,
+            string? texto,
+            int? postado_por,
+            DateTime? postado_em
         ) : base()
         {
             Id = id;
@@ -37,102 +36,98 @@ namespace Projeto.Models
             PostadoPor = postado_por;
             PostadoEm = postado_em;
         }
-
-        public Post(
-            string tipo,
-            string titulo,
-            string texto,
-            int postado_por,
-            DateTime postado_em
-        ) : base()
-        {
-            Tipo = tipo;
-            Titulo = titulo;
-            Texto = texto;
-            PostadoPor = postado_por;
-            PostadoEm = postado_em;
-        }
-
-        public Post() : base() { }
         #endregion Construtores
 
 
         #region Métodos
-        public static bool JaExiste(int id)
+        public static Post? extrairObjetoDoReader(SqlDataReader reader)
         {
+            string? id = reader["id"]?.ToString();
+            string? tipo = reader["tipo"]?.ToString();
+            string? titulo = reader["titulo"]?.ToString();
+            string? texto = reader["texto"]?.ToString();
+            int postado_por = 0;
+            DateTime postado_em = default;
+
             try
             {
-                Resultado<Post?> resultadoBusca = BuscarPorId(id);
+                string? _postado_por = reader["postado_por"].ToString();
 
-                if (resultadoBusca.Erro != null)
+                if (_postado_por != null)
                 {
-                    return true;
+                    postado_por = int.Parse(_postado_por);
                 }
-
-                Post? postEncontrado = resultadoBusca.Item;
-
-                return postEncontrado != null && !string.IsNullOrEmpty(postEncontrado.Id);
             }
 
-            catch (Exception)
+            catch(Exception) 
             {
-                return true;
+                return null;
             }
+
+            try
+            {
+                string? _postado_em = reader["postado_em"].ToString();
+
+                if (_postado_em != null)
+                {
+                    postado_em = DateTime.Parse(_postado_em);
+                }
+            }
+
+            catch (Exception) {
+                return null;
+            }
+
+            Post? post = new Post(id, tipo, titulo, texto, postado_por, postado_em);
+
+            return post;
         }
 
-        public Resultado<string?> Postar(Usuario usuarioLogado)
+        public static Post? BuscarPorId(int id)
         {
-            try
+            return ITabela<Post>.buscarPorId(id);
+        }
+
+        public static List<Post?>? BuscarTodos()
+        {
+            return ITabela<Post>.buscarTodos();
+        }
+
+        public string? Postar(Usuario usuarioLogado)
+        {
+            return Postar(Tipo, Texto, Titulo, usuarioLogado);
+        }
+
+        public static string? Postar(string? tipo, string? texto, string? titulo, Usuario? usuarioLogado)
+        {
+            if (usuarioLogado == null || usuarioLogado?.Id == null)
             {
-                // 1 - verificar se usuário está logado
-                // 2 - verificar se parâmetros estão de acordo com o banco
-                // 3 - postar no banco
-
-
-                // 1
-                if (usuarioLogado == null)
-                {
-                    throw new Exception("Você deve estar logado para poder postar.");
-                }
-
-
-                // 2
-                if (string.IsNullOrEmpty(Tipo) || Titulo == null)
-                {
-                    throw new Exception("Os campos 'Tipo' e 'Titulo' não podem estar vazios.");
-                }
-
-
-                // 3
-                SqlParameter paramTipo = new SqlParameter("@p_tipo", Tipo);
-                SqlParameter paramTitulo = new SqlParameter("@p_titulo", Titulo);
-                SqlParameter paramTexto = new SqlParameter("@p_texto", Texto ?? "");
-                SqlParameter paramPostadoPor = new SqlParameter("@p_postado_por", usuarioLogado.Id);
-                SqlParameter paramRetorno = new SqlParameter("@retorno", System.Data.SqlDbType.Int);
-                paramRetorno.Direction = System.Data.ParameterDirection.Output;
-
-                string procedure = "POSTAR";
-
-                Resultado<string?> resultadoPost = Conexao.ExecutarUnico<string>(
-                    procedure,
-                    [paramTipo, paramTitulo, paramTexto, paramPostadoPor, paramRetorno], 
-                    true
-                );
-
-                if (resultadoPost.Erro != null)
-                {
-                    return resultadoPost;
-                }
-
-                resultadoPost.Item = paramRetorno.SqlValue.ToString();
-                return resultadoPost;
+                throw new Exception("O usuário deve estar logado para poder postar.");
             }
 
-            catch (Exception err)  
+            if (tipo == null || titulo == null)
             {
-                Resultado<string?> resultado = new();
-                resultado.Erro = err;
+                throw new Exception("As propriedades 'tipo' e 'título' devem estar preenchidas para poder postar.");
+            }
+
+            try
+            {
+                SqlParameter _tipo = new SqlParameter("@p_tipo", tipo);
+                SqlParameter _texto = new SqlParameter("@p_texto", texto);
+                SqlParameter _titulo = new SqlParameter("@p_titulo", titulo);
+                SqlParameter _postado_por = new SqlParameter("@p_postado_por", usuarioLogado.Id);
+                List<SqlParameter> parametros = [_tipo, _texto, _titulo, _postado_por];
+
+                string comando = string.Concat("POSTAR");
+                string? resultado = conexao.ExecutarProcedure(comando, parametros, true);
+
                 return resultado;
+            }
+
+            catch(Exception err)
+            {
+                Console.WriteLine(err.Message);
+                return null;
             }
         }
         #endregion Métodos

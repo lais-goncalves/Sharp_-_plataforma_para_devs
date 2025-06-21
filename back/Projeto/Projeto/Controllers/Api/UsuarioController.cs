@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Projeto.Banco;
 using Projeto.Models;
 
 namespace Projeto.Controllers.Api
@@ -12,19 +11,14 @@ namespace Projeto.Controllers.Api
         {
             try
             {
-                Resultado<List<Usuario>?> resultadoBusca = Usuario.BuscarTodos();
+                List<Usuario?>? usuarios = Usuario.BuscarTodos();
 
-                if (resultadoBusca.Erro != null)
-                {
-                    return BadRequest(resultadoBusca.Erro.Message);
-                }
-
-                if (resultadoBusca.Item?.Count <= 0)
+                if (usuarios == null || usuarios.Count <= 0)
                 {
                     return Ok("Não foram encontrados usuários.");
                 }
 
-                return Ok(resultadoBusca.Item);
+                return Ok(usuarios);
             }
 
             catch (Exception err)
@@ -38,19 +32,14 @@ namespace Projeto.Controllers.Api
         {
             try
             {
-                Resultado<Usuario?> resultadoBusca = Usuario.BuscarPorApelido(apelido);
+                Usuario? usuario = Usuario.BuscarPorApelido(apelido);
 
-                if (resultadoBusca.Erro != null)
-                {
-                    throw resultadoBusca.Erro;
-                }
-
-                if (resultadoBusca.Item == null)
+                if (usuario == null)
                 {
                     return Ok("Usuário não encontrado.");
                 }
 
-                return Ok(resultadoBusca.Item.Apelido);
+                return Ok("Apelido: " + usuario.Apelido);
             }
 
             catch (Exception err)
