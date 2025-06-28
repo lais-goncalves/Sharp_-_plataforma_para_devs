@@ -7,7 +7,7 @@ namespace Projeto.Config
     public class Sessao
     {
         public HttpContext HttpContext { get; set; }
-        public static string UsuarioLogadoStr => "usuarioLogado";
+        public static string UsuarioLogadoStr => "UsuarioLogado";
 
         public Sessao (HttpContext HttpContext)
         {

@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Projeto.Config;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

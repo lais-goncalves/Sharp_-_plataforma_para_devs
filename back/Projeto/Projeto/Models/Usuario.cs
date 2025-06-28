@@ -1,25 +1,33 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Data;
+using System.Text.Json.Serialization;
 using Microsoft.Data.SqlClient;
+using Npgsql;
 using Projeto.Dados;
 
 namespace Projeto.Models
 {
     public class Usuario : ITabela<Usuario> {
         #region Propriedades
-        public static string nomeDaTabela { get; } = "Usuario";
-        public static Conexao conexao { get; } = Conexao.instancia;
+        public static string nomeDaTabela { get; set; } = "Usuario";
+        public static Conexao conexao { get; set; } = Conexao.instancia;
+
         [JsonIgnore]
-        public int Id { get; set; }
+        public int? Id { get; set; }
+        public string? NomeCompleto { get; set; }
         [JsonIgnore]
-        public string Senha { get; set; }
-        public string Apelido { get; set; }
+        public string? Email { get; set; }
+        public string? Apelido { get; set; }
+        [JsonIgnore]
+        public string? Senha { get; set; }
         #endregion Propriedades
 
 
         #region Construtores
-        public Usuario(int id, string apelido, string senha)
+        public Usuario(int? id, string? nomeCompleto, string? email, string? apelido, string? senha)
         {
             Id = id;
+            NomeCompleto = nomeCompleto;
+            Email = email;
             Apelido = apelido;
             Senha = senha;
         }
@@ -27,39 +35,27 @@ namespace Projeto.Models
 
 
         #region Métodos
-        public static Usuario? extrairObjetoDoReader(SqlDataReader reader)
+        public static Usuario? extrairObjetoDoReader(NpgsqlDataReader reader)
         {
-            int id = 0;
-            string? apelido = reader["apelido"]?.ToString();
-            string? senha = reader["senha"]?.ToString();
+            int? id = reader.GetInt32("id");
+            string? nomeCompleto = reader.GetString("nome_completo");
+            string? email = reader.GetString("email");
+            string? apelido = reader.GetString("apelido");
+            string? senha = reader.GetString("senha");
 
-            try
-            {
-                string? _id = reader["id"].ToString();
-
-                if (_id != null)
-                {
-                    id = int.Parse(_id);
-                }
-            }
-
-            catch (Exception) {
-                return null;
-            }
-
-            if (apelido == null || senha == null)
+            if (id == null || nomeCompleto == null || email == null || apelido == null || senha == null)
             {
                 return null;
             }
 
-            Usuario? usuario = new Usuario(id, apelido, senha);
+            Usuario? usuario = new Usuario(id, nomeCompleto, email, apelido, senha);
             return usuario;
         }
 
         public static Usuario? BuscarPorApelido(string apelido)
         {
-            SqlParameter paramApelido = new ("@apelido", apelido);
-            string comando = string.Concat("SELECT * FROM ", nomeDaTabela, "WHERE apelido = @apelido");
+            NpgsqlParameter paramApelido = new ("@apelido", apelido);
+            string comando = string.Concat("SELECT * FROM ", nomeDaTabela, " WHERE apelido = @apelido");
 
             Usuario? usuario = conexao.ExecutarUnico(comando, [paramApelido], true, extrairObjetoDoReader);
             return usuario;
@@ -70,12 +66,12 @@ namespace Projeto.Models
             return ITabela<Usuario>.buscarTodos();
         }
 
-        public static Usuario? LoginOk(string apelido, string senha)
+        public static Usuario? Login(string apelido, string senha)
         {
             try
             {
-                SqlParameter paramApelido = new SqlParameter("@apelido", apelido);
-                SqlParameter paramSenha = new SqlParameter("@senha", senha);
+                NpgsqlParameter paramApelido = new NpgsqlParameter("@apelido", apelido);
+                NpgsqlParameter paramSenha = new NpgsqlParameter("@senha", senha);
                 string comando = string.Concat("SELECT * FROM ", nomeDaTabela, " WHERE apelido = @apelido AND senha = @senha");
 
                 Usuario? usuario = conexao.ExecutarUnico(comando, [paramApelido, paramSenha], true, extrairObjetoDoReader);

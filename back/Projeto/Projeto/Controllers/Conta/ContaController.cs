@@ -6,16 +6,16 @@ namespace Projeto.Controllers.Conta
     [Route("[controller]/[action]")]
     public class ContaController : ControllerComSession {
         [HttpGet]
-        public ActionResult BuscarUsuario()
+        public ActionResult BuscarUsuarioLogado()
         {
             try
             {
-                if (!UsuarioEstaLogado)
+                if (!usuarioEstaLogado)
                 {
                     return Ok("Usuário não logado.");
                 }
 
-                return Ok(usuarioLogado);
+                return Ok(UsuarioLogado);
             }
 
             catch (Exception err)
@@ -49,20 +49,19 @@ namespace Projeto.Controllers.Conta
             return Ok();
         }
 
-        [HttpPost]
+        [HttpGet]
         public ActionResult Logar(string apelido, string senha)
         {
             try
             {
-                Usuario? usuario = Usuario.LoginOk(apelido, senha);
+                bool logadoComSucesso = RealizarLogin(apelido, senha);
 
-                if (usuario == null)
+                if (!logadoComSucesso)
                 {
                     throw new Exception("Usuário e/ou senha incorreto(s).");
                 }
 
-                usuarioLogado = usuario;
-                return Ok(usuarioLogado);
+                return Ok(UsuarioLogado);
             }
 
             catch (Exception err)
@@ -71,12 +70,12 @@ namespace Projeto.Controllers.Conta
             }
         }
 
-        [HttpPost]
-        public new ActionResult Logoff()
+        [HttpGet]
+        public ActionResult Logoff()
         {
             try
             {
-                Logoff();
+                RealizarLogoff();
                 return Ok("Logoff efetuado com sucesso.");
             }
 

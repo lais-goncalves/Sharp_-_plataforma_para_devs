@@ -1,23 +1,22 @@
-﻿using System.Data;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
-using Microsoft.Data.SqlClient;
-using Projeto.Models;
+﻿using Microsoft.Data.SqlClient;
+using Npgsql;
 
 namespace Projeto.Dados
 {
     public interface ITabela<T> where T : ITabela<T>
     {
-        static virtual Conexao conexao { get; }
-        public virtual static string nomeDaTabela { get; }
+        public static virtual Conexao conexao { get; set; }
+        public virtual static string nomeDaTabela { get; set; }
 
 
-        public static abstract T? extrairObjetoDoReader(SqlDataReader reader);
+        public static abstract T? extrairObjetoDoReader(NpgsqlDataReader reader);
 
-        public static T? buscarPorId(string id)
+        public static T? buscarPorId(int id)
         {
             try
             {
-                SqlParameter paramId = new("@id", id);
+                NpgsqlParameter paramId = new("@id", id);
+                paramId.DbType = System.Data.DbType.Int32;
                 string query = string.Concat("SELECT * FROM ", T.nomeDaTabela, " WHERE id = @id");
 
                 T? post = T.conexao.ExecutarUnico(query, [paramId], true, T.extrairObjetoDoReader);
@@ -32,10 +31,19 @@ namespace Projeto.Dados
             }
         }
 
-        public static T? buscarPorId(int id)
+        public static T? buscarPorId(string id)
         {
-            string idStr = id.ToString();
-            return buscarPorId(idStr);
+            try
+            {
+                int idInt = int.Parse(id);
+                return buscarPorId(idInt);
+            }
+
+            catch (Exception)
+            {
+                return default;
+            }
+
         }
 
         public static List<T?>? buscarTodos()

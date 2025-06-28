@@ -49,16 +49,16 @@ namespace Projeto.Controllers.Api
         }
 
         [HttpPost]
-        public IActionResult Postar(string tipo, string titulo, string texto)
+        public IActionResult Postar(string titulo, string texto)
         {
             try
             {
-                if (!UsuarioEstaLogado)
+                if (!usuarioEstaLogado)
                 {
                     throw new Exception("Você deve estar logado para poder postar.");
                 }
 
-                string? idResultado = Post.Postar(tipo, titulo, texto, usuarioLogado);
+                int? idResultado = Post.Postar(titulo, texto, UsuarioLogado);
 
                 if (idResultado == null)
                 {

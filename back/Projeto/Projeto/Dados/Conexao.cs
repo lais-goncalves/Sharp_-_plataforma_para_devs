@@ -1,5 +1,8 @@
 ﻿using System.Data;
+using System.Data.Common;
 using Microsoft.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 
 namespace Projeto.Dados
 {
@@ -16,49 +19,49 @@ namespace Projeto.Dados
 
 
         #region Métodos
-        public delegate T? ExtrairDados<T>(SqlDataReader reader);
-        private void criarListaDeParametros(SqlCommand cmd, List<SqlParameter>? parametros)
+        public delegate T? ExtrairDados<T>(NpgsqlDataReader reader);
+        private void criarListaDeParametros(NpgsqlCommand cmd, List<NpgsqlParameter>? parametros)
         {
             if (parametros is null)
             {
                 return;
             }
 
-            foreach (SqlParameter param in parametros)
+            foreach (NpgsqlParameter param in parametros)
             {
                 cmd.Parameters.Add(param);
             }
         }
 
-        private void fecharConexao(SqlCommand? cmd, SqlConnection? conn)
+        private void fecharConexao(NpgsqlCommand? cmd, NpgsqlConnection? conn)
         {
             conn?.Close();
             conn?.Dispose();
             cmd?.Dispose();
-            cmd?.Connection.Close();
+            cmd?.Connection?.Close();
         }
 
-        private string? _executarProcedure(string procedure, List<SqlParameter>? parametros, bool temOutput, SqlDbType tipoOutput)
+        private string? _executarProcedure(string procedure, List<NpgsqlParameter>? parametros, bool temOutput, NpgsqlDbType tipoOutput)
         {
-            SqlConnection? conn = null;
-            SqlCommand? cmd = null;
+            NpgsqlConnection? conn = null;
+            NpgsqlCommand? cmd = null;
             string? resultado = null;
 
             try
             {
-                using (conn = new SqlConnection() { ConnectionString = connectionString })
+                using (NpgsqlDataSource dataSource = NpgsqlDataSource.Create(connectionString))
                 {
-                    conn.Open();
-                    cmd = conn.CreateCommand();
+                    conn = dataSource.OpenConnection();
+                    cmd = new NpgsqlCommand(procedure, conn);
                     cmd.CommandText = procedure;
 
                     criarListaDeParametros(cmd, parametros);
-                    SqlParameter? parametroOutput;
+                    NpgsqlParameter? parametroOutput;
 
                     if (temOutput)
                     {
-                        parametroOutput = new SqlParameter("@retorno", "");
-                        parametroOutput.SqlDbType = tipoOutput;
+                        parametroOutput = new NpgsqlParameter("@retorno", "");
+                        parametroOutput.NpgsqlDbType = tipoOutput;
                         parametroOutput.Direction = ParameterDirection.Output;
                         cmd.Parameters.Add(parametroOutput);
                     }
@@ -68,7 +71,7 @@ namespace Projeto.Dados
 
                     if (temOutput)
                     {
-                        resultado = cmd.Parameters["@retorno"].Value.ToString();
+                        resultado = cmd.Parameters["@retorno"]?.Value?.ToString();
                     }
                 }
             }
@@ -87,12 +90,12 @@ namespace Projeto.Dados
             return resultado;
         }
 
-        private List<T?>? _executarComando<T>(string comando, List<SqlParameter>? parametros, bool buscarUnico, bool retornarResultados, ExtrairDados<T>? extrairObjetoDoReader)
+        private List<T?>? _executarComando<T>(string comando, List<NpgsqlParameter>? parametros, bool buscarUnico, bool retornarResultados, ExtrairDados<T>? extrairObjetoDoReader)
         {
-            SqlConnection? conn = null;
-            SqlCommand? cmd = null;
-            SqlDataReader? reader = null;
-            List<T?>? resultado = null;
+            NpgsqlConnection? conn = null;
+            NpgsqlCommand? cmd = null;
+            NpgsqlDataReader? reader = null;
+            List<T?>? resultado = default;
 
             try
             {
@@ -101,10 +104,10 @@ namespace Projeto.Dados
                     throw new Exception("Para retornar resultados, é necessário definir um método de extração.");
                 }
 
-                using (conn = new SqlConnection() { ConnectionString = connectionString })
+                using (NpgsqlDataSource dataSource = NpgsqlDataSource.Create(connectionString))
                 {
-                    conn.Open();
-                    cmd = conn.CreateCommand();
+                    conn = dataSource.OpenConnection();
+                    cmd = new NpgsqlCommand(comando, conn);
                     cmd.CommandText = comando;
 
                     criarListaDeParametros(cmd, parametros);
@@ -148,7 +151,7 @@ namespace Projeto.Dados
             return resultado;
         }
 
-        public string? ExecutarProcedure(string comando, List<SqlParameter>? parametros = null, bool temOutput = true, SqlDbType tipoOutput = SqlDbType.NVarChar)
+        public string? ExecutarProcedure(string comando, List<NpgsqlParameter>? parametros = null, bool temOutput = true, NpgsqlDbType tipoOutput = NpgsqlDbType.Varchar)
         {
             try
             {
@@ -162,7 +165,7 @@ namespace Projeto.Dados
             }
         }
 
-        public List<T?>? Executar<T>(string comando, List<SqlParameter>? parametros = null, bool retornarResultados = false, ExtrairDados<T>? extrairObjetoDoReader = null)
+        public List<T?>? Executar<T>(string comando, List<NpgsqlParameter>? parametros = null, bool retornarResultados = false, ExtrairDados<T>? extrairObjetoDoReader = null)
         {
             try
             {
@@ -176,7 +179,7 @@ namespace Projeto.Dados
             }
         }
 
-        public T? ExecutarUnico<T>(string comando, List<SqlParameter>? parametros = null, bool retornarResultados = false, ExtrairDados<T>? extrairObjetoDoReader = null)
+        public T? ExecutarUnico<T>(string comando, List<NpgsqlParameter>? parametros = null, bool retornarResultados = false, ExtrairDados<T>? extrairObjetoDoReader = null)
         {
             try
             {
@@ -197,12 +200,15 @@ namespace Projeto.Dados
             }
         }
 
-        public static string? ExtrairString(SqlDataReader reader)
+        public static string? ExtrairString(NpgsqlDataReader reader)
         {
-            return reader[0]?.ToString();
+            return reader.GetString(0);
         }
 
-
+        public static int? ExtrairInt32(NpgsqlDataReader reader)
+        {
+            return reader.GetInt32(0);
+        }
         #endregion Métodos
     }
 }

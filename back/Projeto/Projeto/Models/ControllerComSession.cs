@@ -5,23 +5,44 @@ namespace Projeto.Models
 {
     public class ControllerComSession : Controller
     {
-        protected Sessao sessao => buscarSessao();
-        protected Usuario? usuarioLogado
+        protected Sessao Sessao => buscarSessao();
+        protected Usuario? UsuarioLogado
         {
-            get => sessao.BuscarUsuarioLogado();
-            set => sessao.DefinirUsuarioLogado(value);
+            get => Sessao.BuscarUsuarioLogado();
+            set => Sessao.DefinirUsuarioLogado(value);
         }
 
-        public bool UsuarioEstaLogado { get => usuarioLogado != null && usuarioLogado.Id > 0; }
+        public bool usuarioEstaLogado { get => UsuarioLogado != null && UsuarioLogado.Id > 0; }
 
         private Sessao buscarSessao()
         {
             return new Sessao(HttpContext);
         }
 
-        protected void Logoff()
+        protected void RealizarLogoff()
         {
-            usuarioLogado = null;
+            UsuarioLogado = null;
+        }
+
+        protected bool RealizarLogin(string apelido, string senha)
+        {
+            try
+            {
+                Usuario? usuario = Usuario.Login(apelido, senha);
+
+                if (usuario == null)
+                {
+                    return false;
+                }
+
+                UsuarioLogado = usuario;
+                return true;
+            }
+
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }
