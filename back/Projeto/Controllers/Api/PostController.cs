@@ -12,12 +12,6 @@ namespace Projeto.Controllers.Api
             try
             {
                 Post? post = Post.BuscarPorId(id);
-
-                if (post == null)
-                {
-                    return Ok();
-                }
-
                 return Ok(post);
             }
 
@@ -33,12 +27,6 @@ namespace Projeto.Controllers.Api
             try
             {
                 List<Post?>? posts = Post.BuscarTodos();
-
-                if (posts == null || posts.Count <= 0)
-                {
-                    return Ok();
-                }
-
                 return Ok(posts);
             }
 
