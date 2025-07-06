@@ -19,17 +19,20 @@ namespace Projeto.Models
         public string? Apelido { get; set; }
         [JsonIgnore]
         public string? Senha { get; set; }
+        [JsonIgnore]
+        public string? IdGitHub { get; set; }
         #endregion Propriedades
 
 
         #region Construtores
-        public Usuario(int? id, string? nomeCompleto, string? email, string? apelido, string? senha)
+        public Usuario(int? id, string? nomeCompleto, string? email, string? apelido, string? senha, string? idGitHub = null)
         {
             Id = id;
             NomeCompleto = nomeCompleto;
             Email = email;
             Apelido = apelido;
             Senha = senha;
+            IdGitHub = idGitHub;
         }
         #endregion Construtores
 
@@ -42,13 +45,14 @@ namespace Projeto.Models
             string? email = reader.GetString("email");
             string? apelido = reader.GetString("apelido");
             string? senha = reader.GetString("senha");
+            string? idGitHub = reader.GetString("github_id");
 
             if (id == null || nomeCompleto == null || email == null || apelido == null || senha == null)
             {
                 return null;
             }
 
-            Usuario? usuario = new Usuario(id, nomeCompleto, email, apelido, senha);
+            Usuario? usuario = new Usuario(id, nomeCompleto, email, apelido, senha, idGitHub);
             return usuario;
         }
 
@@ -85,12 +89,12 @@ namespace Projeto.Models
             }
         }
 
-        public static string? BuscarCodigoGitHub(int? id)
+        public static string? BuscarIdGitHub(int? id)
         {
             try
             {
                 NpgsqlParameter paramId = new NpgsqlParameter("@id", id);
-                string comando = string.Concat("SELECT codigo_github FROM ", nomeDaTabela, " WHERE id = @id");
+                string comando = string.Concat("SELECT id_github FROM ", nomeDaTabela, " WHERE id = @id");
 
                 string? codigo = conexao.ExecutarUnico(comando, [paramId], true, Conexao.ExtrairString);
                 return codigo;
@@ -103,17 +107,17 @@ namespace Projeto.Models
             }
         }
 
-        public string? BuscarCodigoGitHub(Usuario usuario)
+        public string? BuscarIdGitHub(Usuario usuario)
         {
             if (usuario == null || usuario.Id == null)
             {
                 return null;
             }
 
-            return BuscarCodigoGitHub(usuario.Id);
+            return BuscarIdGitHub(usuario.Id);
         }
 
-        public static bool DefinirCodigoGitHub(int? id, string codigo)
+        public static bool DefinirIdGitHub(int? id, string codigo)
         {
             try
             {
@@ -123,10 +127,10 @@ namespace Projeto.Models
                 }
 
                 NpgsqlParameter paramId = new NpgsqlParameter("@id", id);
-                NpgsqlParameter paramCodigo = new NpgsqlParameter("@codigo_github", codigo);
-                string comando = string.Concat("UPDATE ", nomeDaTabela, " SET codigo_github = @codigo_github WHERE id = @id");
+                NpgsqlParameter paramIdGitHub = new NpgsqlParameter("@id_github", codigo);
+                string comando = string.Concat("UPDATE ", nomeDaTabela, " SET id_github = @id_github WHERE id = @id");
 
-                conexao.ExecutarUnico<string>(comando, [paramId, paramCodigo], false, default);
+                conexao.ExecutarUnico<string>(comando, [paramId, paramIdGitHub], false, default);
                 return true;
             }
 
@@ -137,14 +141,14 @@ namespace Projeto.Models
             }
         }
 
-        public bool DefinirCodigoGitHub(Usuario usuario, string codigo)
+        public bool DefinirIdGitHub(Usuario usuario, string codigo)
         {
             if (usuario == null || usuario.Id == null || codigo == null)
             {
                 return false;
             }
 
-            return DefinirCodigoGitHub(usuario.Id, codigo);
+            return DefinirIdGitHub(usuario.Id, codigo);
         }
 
         public static bool Registrar(string apelido, string senha)

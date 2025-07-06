@@ -1,9 +1,8 @@
 ﻿using System.Collections.Specialized;
-using System.Configuration;
-using System.Net.Http;
 using System.Web;
 using Microsoft.AspNetCore.Mvc;
 using Projeto.Models;
+using System.Net.Http.Headers;
 
 namespace Projeto.Controllers.Conta
 {
@@ -78,41 +77,8 @@ namespace Projeto.Controllers.Conta
             }
         }
 
-        /*
         [HttpGet]
-        public async Task<ActionResult> BuscarTokenDeAcessoGitHub(string codigo)
-        {
-            try
-            {
-                if (GHClientId == null || GHClientSecret == null)
-                {
-                    throw new Exception("Configuração de API incorreta: GitHub Client ID e/ou SECRET inexistente(s).");
-                }
-
-                NameValueCollection? query = HttpUtility.ParseQueryString(string.Empty);
-                query["client_id"] = GHClientId;
-                query["client_secret"] = GHClientSecret;
-                query["code"] = codigo;
-                string? queryString = query.ToString();
-
-                string urlToken = "https://github.com/login/oauth/access_token?" + queryString;
-
-                using (HttpResponseMessage resposta = await clienteHttp.PostAsync(urlToken, null))
-                {
-                    Console.WriteLine(resposta.StatusCode);
-                    return Ok(resposta);
-                }
-            }
-
-            catch (Exception err)
-            {
-                return BadRequest(err.Message);
-            }
-        }
-        */
-
-        [HttpGet]
-        public ActionResult RetornoLoginGitHub(string code)
+        public async Task<ActionResult> RetornoLoginGitHub(string code)
         {
             try
             {
@@ -121,9 +87,56 @@ namespace Projeto.Controllers.Conta
                     throw new Exception("Login mal sucedido. Tente novamente.");
                 }
 
-                // TODO: buscar usuario pelo código do GitHub e logar caso não esteja logado
+                if (GHClientId == null || GHClientSecret == null)
+                {
+                    throw new Exception("Configuração de API incorreta: GitHub Client ID e/ou SECRET inexistente(s).");
+                }
 
-                return Ok("Logado com sucesso!");
+                // PASSO 1 -> BUSCAR TOKEN NO GITHUB USANDO CODIGO DE ACESSO (CODE)
+                NameValueCollection? query = HttpUtility.ParseQueryString(string.Empty);
+                query["client_id"] = GHClientId;
+                query["client_secret"] = GHClientSecret;
+                query["code"] = code;
+                string? queryString = query.ToString();
+
+                string urlToken = "https://github.com/login/oauth/access_token?" + queryString;
+                HttpResponseMessage postToken = await clienteHttp.PostAsync(urlToken, null);
+
+                if (!postToken.IsSuccessStatusCode)
+                {
+                    throw new Exception("Login mal sucedido. Tente novamente.");
+                }
+
+                // PASSO 2 -> PEGAR TOKEN NA STRING DE RETORNO DO GITHUB
+                string queryStringToken = postToken.Content.ReadAsStringAsync().Result;
+
+                NameValueCollection? queryToken = HttpUtility.ParseQueryString(queryStringToken);
+                string? token = queryToken["access_token"];
+
+                if (token == null)
+                {
+                    throw new Exception("Login mal sucedido. Tente novamente.");
+                }
+
+                // PASSO 3 -> USAR TOKEN PRA PEGAR INFORMAÇÕES DO USUÁRIO
+                using (HttpRequestMessage getInfoUsuario = new (HttpMethod.Get, "https://api.github.com/user"))
+                {
+                    getInfoUsuario.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                    getInfoUsuario.Headers.Add("Accept", "application/json");
+                    getInfoUsuario.Headers.UserAgent.ParseAdd("Sharp");
+
+                    var retornoInfoUsuario = clienteHttp.Send(getInfoUsuario);
+
+                    if (!retornoInfoUsuario.IsSuccessStatusCode)
+                    {
+                        throw new Exception("Login mal sucedido. Tente novamente.");
+                    }
+
+                    Console.WriteLine(retornoInfoUsuario.ToString());
+                }
+
+                // PASSO 4 -> SE USUÁRIO NÃO ESTIVER LOGADO, LOGAR
+                return Ok(postToken);
             }
 
             catch (Exception err)
