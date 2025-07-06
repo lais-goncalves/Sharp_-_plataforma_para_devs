@@ -85,6 +85,68 @@ namespace Projeto.Models
             }
         }
 
+        public static string? BuscarCodigoGitHub(int? id)
+        {
+            try
+            {
+                NpgsqlParameter paramId = new NpgsqlParameter("@id", id);
+                string comando = string.Concat("SELECT codigo_github FROM ", nomeDaTabela, " WHERE id = @id");
+
+                string? codigo = conexao.ExecutarUnico(comando, [paramId], true, Conexao.ExtrairString);
+                return codigo;
+            }
+
+            catch (Exception err)
+            {
+                Console.WriteLine(err.Message);
+                return null;
+            }
+        }
+
+        public string? BuscarCodigoGitHub(Usuario usuario)
+        {
+            if (usuario == null || usuario.Id == null)
+            {
+                return null;
+            }
+
+            return BuscarCodigoGitHub(usuario.Id);
+        }
+
+        public static bool DefinirCodigoGitHub(int? id, string codigo)
+        {
+            try
+            {
+                if (codigo == null)
+                {
+                    throw new Exception("O código não pode estar nulo.");
+                }
+
+                NpgsqlParameter paramId = new NpgsqlParameter("@id", id);
+                NpgsqlParameter paramCodigo = new NpgsqlParameter("@codigo_github", codigo);
+                string comando = string.Concat("UPDATE ", nomeDaTabela, " SET codigo_github = @codigo_github WHERE id = @id");
+
+                conexao.ExecutarUnico<string>(comando, [paramId, paramCodigo], false, default);
+                return true;
+            }
+
+            catch (Exception)
+            {
+                Console.WriteLine("Usuário não encontrado.");
+                return false;
+            }
+        }
+
+        public bool DefinirCodigoGitHub(Usuario usuario, string codigo)
+        {
+            if (usuario == null || usuario.Id == null || codigo == null)
+            {
+                return false;
+            }
+
+            return DefinirCodigoGitHub(usuario.Id, codigo);
+        }
+
         public static bool Registrar(string apelido, string senha)
         {
             //Resultado<bool> resultado = new();

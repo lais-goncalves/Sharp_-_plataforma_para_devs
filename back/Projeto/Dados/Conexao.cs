@@ -7,7 +7,7 @@ namespace Projeto.Dados
     public class Conexao
     {
         #region Propriedades
-        private static readonly string connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+        private static readonly string connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DEFAULT_CONNECTION"].ConnectionString;
         public static readonly Conexao instancia = new Conexao();
         #endregion Propriedades
 

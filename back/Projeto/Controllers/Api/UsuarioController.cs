@@ -47,5 +47,26 @@ namespace Projeto.Controllers.Api
                 return BadRequest(err.Message);
             }
         }
+
+        [HttpPost]
+        public IActionResult DefinirCodigoGitHubUsuario(int id, string codigo)
+        {
+            try
+            {
+                bool funcionou = Usuario.DefinirCodigoGitHub(id, codigo);
+
+                if (funcionou)
+                {
+                    return Ok();
+                }
+
+                throw new Exception("Não funcionou.");
+            }
+
+            catch (Exception err)
+            {
+                return BadRequest(err.Message);
+            }
+        }
     }
 }

@@ -1,10 +1,18 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Specialized;
+using System.Configuration;
+using System.Net.Http;
+using System.Web;
+using Microsoft.AspNetCore.Mvc;
 using Projeto.Models;
 
 namespace Projeto.Controllers.Conta
 {
     [Route("[controller]/[action]")]
     public class ContaController : ControllerComSession {
+        private string? GHClientId = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_ID"];
+        private string? GHClientSecret = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_SECRET"];
+        protected HttpClient clienteHttp = new();
+
         [HttpGet]
         public ActionResult BuscarUsuarioLogado()
         {
@@ -68,6 +76,81 @@ namespace Projeto.Controllers.Conta
             {
                 return BadRequest(err.Message);
             }
+        }
+
+        /*
+        [HttpGet]
+        public async Task<ActionResult> BuscarTokenDeAcessoGitHub(string codigo)
+        {
+            try
+            {
+                if (GHClientId == null || GHClientSecret == null)
+                {
+                    throw new Exception("Configuração de API incorreta: GitHub Client ID e/ou SECRET inexistente(s).");
+                }
+
+                NameValueCollection? query = HttpUtility.ParseQueryString(string.Empty);
+                query["client_id"] = GHClientId;
+                query["client_secret"] = GHClientSecret;
+                query["code"] = codigo;
+                string? queryString = query.ToString();
+
+                string urlToken = "https://github.com/login/oauth/access_token?" + queryString;
+
+                using (HttpResponseMessage resposta = await clienteHttp.PostAsync(urlToken, null))
+                {
+                    Console.WriteLine(resposta.StatusCode);
+                    return Ok(resposta);
+                }
+            }
+
+            catch (Exception err)
+            {
+                return BadRequest(err.Message);
+            }
+        }
+        */
+
+        [HttpGet]
+        public ActionResult RetornoLoginGitHub(string code)
+        {
+            try
+            {
+                if (code == null)
+                {
+                    throw new Exception("Login mal sucedido. Tente novamente.");
+                }
+
+                // TODO: buscar usuario pelo código do GitHub e logar caso não esteja logado
+
+                return Ok("Logado com sucesso!");
+            }
+
+            catch (Exception err)
+            {
+                return BadRequest(err.Message);
+            }
+        }
+
+        [HttpGet]
+        public void LogarComGitHub()
+        {
+            try
+            {
+                if (GHClientId == null || GHClientSecret == null)
+                {
+                    throw new Exception("Configuração de API incorreta: GitHub Client ID e/ou SECRET inexistente(s).");
+                }
+
+                NameValueCollection? query = HttpUtility.ParseQueryString(string.Empty);
+                query["client_id"] = GHClientId;
+                string? queryString = query.ToString();
+
+                string urlLogin = "https://github.com/login/oauth/authorize?" + queryString;
+                Response.Redirect(urlLogin);
+            }
+
+            catch (Exception) {  }
         }
 
         [HttpGet]
