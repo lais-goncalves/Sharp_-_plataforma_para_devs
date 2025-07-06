@@ -53,7 +53,7 @@ namespace Projeto.Controllers.Api
         {
             try
             {
-                bool funcionou = Usuario.DefinirCodigoGitHub(id, codigo);
+                bool funcionou = Usuario.DefinirIdGitHub(id, codigo);
 
                 if (funcionou)
                 {
