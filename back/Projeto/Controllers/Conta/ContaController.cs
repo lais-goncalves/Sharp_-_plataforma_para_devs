@@ -3,6 +3,7 @@ using System.Web;
 using Microsoft.AspNetCore.Mvc;
 using Projeto.Models;
 using System.Net.Http.Headers;
+using Newtonsoft.Json;
 
 namespace Projeto.Controllers.Conta
 {
@@ -132,11 +133,54 @@ namespace Projeto.Controllers.Conta
                         throw new Exception("Login mal sucedido. Tente novamente.");
                     }
 
-                    Console.WriteLine(retornoInfoUsuario.ToString());
-                }
+                    // verificar se usuário já está conectado ao GitHub
+                    string? infoGitHubUsuario = retornoInfoUsuario.Content.ReadAsStringAsync().Result;
 
-                // PASSO 4 -> SE USUÁRIO NÃO ESTIVER LOGADO, LOGAR
-                return Ok(postToken);
+                    if (infoGitHubUsuario == null)
+                    {
+                        throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
+                    }
+
+                    dynamic? objInfoGitHubUsuario = JsonConvert.DeserializeObject(infoGitHubUsuario);
+                    string? idInfoGitHub = objInfoGitHubUsuario?.id;
+
+                    if (idInfoGitHub == null)
+                    {
+                        throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
+                    }
+
+                    // caso usuário não esteja logado, logar
+                    if (!usuarioEstaLogado)
+                    {
+                        Usuario? usuario = Usuario.BuscarPorIdGitHub(idInfoGitHub);
+
+                        if (usuario == null)
+                        {
+                            throw new Exception("Para logar-se com o GitHub, é necessário criar uma conta primeiro.");
+                        }
+
+                        UsuarioLogado = usuario;
+                    } 
+                    
+                    else
+                    {
+                        string? idGitHubUsuario = UsuarioLogado.BuscarIdGitHub();
+
+                        if (idGitHubUsuario == null)
+                        {
+                            bool idFoiDefinido = UsuarioLogado.DefinirIdGitHub(idGitHubUsuario);
+
+                            if (idFoiDefinido == false)
+                            {
+                                throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
+                            }
+                        }
+                    }
+
+                    // TODO: criar classe PerfilGitHub com as informações do github do usuário
+                    // TODO: deixar coluna id_github como UNIQUE
+                    return Ok("Login efetuado com sucesso.");
+                }
             }
 
             catch (Exception err)

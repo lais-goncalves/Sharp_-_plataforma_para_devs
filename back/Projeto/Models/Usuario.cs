@@ -45,7 +45,7 @@ namespace Projeto.Models
             string? email = reader.GetString("email");
             string? apelido = reader.GetString("apelido");
             string? senha = reader.GetString("senha");
-            string? idGitHub = reader.GetString("github_id");
+            string? idGitHub = reader.GetString("id_github");
 
             if (id == null || nomeCompleto == null || email == null || apelido == null || senha == null)
             {
@@ -60,6 +60,15 @@ namespace Projeto.Models
         {
             NpgsqlParameter paramApelido = new ("@apelido", apelido);
             string comando = string.Concat("SELECT * FROM ", nomeDaTabela, " WHERE apelido = @apelido");
+
+            Usuario? usuario = conexao.ExecutarUnico(comando, [paramApelido], true, extrairObjetoDoReader);
+            return usuario;
+        }
+
+        public static Usuario? BuscarPorIdGitHub(string idGitHub)
+        {
+            NpgsqlParameter paramApelido = new("@id_github", idGitHub);
+            string comando = string.Concat("SELECT * FROM ", nomeDaTabela, " WHERE id_github = @id_github");
 
             Usuario? usuario = conexao.ExecutarUnico(comando, [paramApelido], true, extrairObjetoDoReader);
             return usuario;
@@ -107,14 +116,14 @@ namespace Projeto.Models
             }
         }
 
-        public string? BuscarIdGitHub(Usuario usuario)
+        public string? BuscarIdGitHub()
         {
-            if (usuario == null || usuario.Id == null)
+            if (Id == null)
             {
                 return null;
             }
 
-            return BuscarIdGitHub(usuario.Id);
+            return BuscarIdGitHub(Id);
         }
 
         public static bool DefinirIdGitHub(int? id, string codigo)
@@ -141,14 +150,14 @@ namespace Projeto.Models
             }
         }
 
-        public bool DefinirIdGitHub(Usuario usuario, string codigo)
+        public bool DefinirIdGitHub(string? codigo)
         {
-            if (usuario == null || usuario.Id == null || codigo == null)
+            if (Id == null || codigo == null)
             {
                 return false;
             }
 
-            return DefinirIdGitHub(usuario.Id, codigo);
+            return DefinirIdGitHub(Id, codigo);
         }
 
         public static bool Registrar(string apelido, string senha)
