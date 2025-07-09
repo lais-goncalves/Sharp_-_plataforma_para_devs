@@ -13,6 +13,15 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromHours(2);
 });
 
+var politicaCors = "politicaCors";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(politicaCors, builder => {
+        builder.WithOrigins("https://github.com").AllowAnyMethod().AllowAnyHeader();
+        builder.WithOrigins("https://api.github.com").AllowAnyMethod().AllowAnyHeader();
+    });
+});
+
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
@@ -31,4 +40,6 @@ app.UseEndpoints(endpoints =>
 });
 
 app.UseHttpsRedirection();
+app.UseCors(politicaCors);
+
 app.Run();

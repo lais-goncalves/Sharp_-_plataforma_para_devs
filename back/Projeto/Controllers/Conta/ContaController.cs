@@ -164,7 +164,7 @@ namespace Projeto.Controllers.Conta
                     
                     else
                     {
-                        string? idGitHubUsuario = UsuarioLogado.BuscarIdGitHub();
+                        string? idGitHubUsuario = UsuarioLogado?.BuscarIdGitHub();
 
                         if (idGitHubUsuario == null)
                         {
@@ -174,11 +174,15 @@ namespace Projeto.Controllers.Conta
                             {
                                 throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
                             }
+                        } else
+                        {
+                            if (idGitHubUsuario != idInfoGitHub)
+                            {
+                                throw new Exception("Já existe um usuário logado nesta conta. Tente usar outra conta.");
+                            }
                         }
                     }
 
-                    // TODO: criar classe PerfilGitHub com as informações do github do usuário
-                    // TODO: deixar coluna id_github como UNIQUE
                     return Ok("Login efetuado com sucesso.");
                 }
             }
@@ -194,6 +198,17 @@ namespace Projeto.Controllers.Conta
         {
             try
             {
+                if (usuarioEstaLogado)
+                {
+                    string? idGitHub = UsuarioLogado?.BuscarIdGitHub();
+
+                    if (idGitHub != null)
+                    {
+                        return;
+                    }
+                }
+
+
                 if (GHClientId == null || GHClientSecret == null)
                 {
                     throw new Exception("Configuração de API incorreta: GitHub Client ID e/ou SECRET inexistente(s).");
@@ -207,7 +222,7 @@ namespace Projeto.Controllers.Conta
                 Response.Redirect(urlLogin);
             }
 
-            catch (Exception) {  }
+            catch (Exception) { }
         }
 
         [HttpGet]
