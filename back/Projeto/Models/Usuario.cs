@@ -3,10 +3,12 @@ using System.Text.Json.Serialization;
 using Microsoft.Data.SqlClient;
 using Npgsql;
 using Projeto.Dados;
+using Projeto.Models.Perfil;
 
 namespace Projeto.Models
 {
-    public class Usuario : ITabela<Usuario> {
+    public class Usuario : ITabela<Usuario>
+    {
         #region Propriedades
         public static string nomeDaTabela { get; set; } = "Usuario";
         public static Conexao conexao { get; set; } = Conexao.instancia;
@@ -19,25 +21,37 @@ namespace Projeto.Models
         public string? Apelido { get; set; }
         [JsonIgnore]
         public string? Senha { get; set; }
-        [JsonIgnore]
-        public string? IdGitHub { get; set; }
+        public PerfilGitHub? PerfilGitHub { get; set; }
         #endregion Propriedades
 
 
         #region Construtores
-        public Usuario(int? id, string? nomeCompleto, string? email, string? apelido, string? senha, string? idGitHub = null)
+        public Usuario(int? id, string? nomeCompleto, string? email, string? apelido, string? senha)
         {
             Id = id;
             NomeCompleto = nomeCompleto;
             Email = email;
             Apelido = apelido;
             Senha = senha;
-            IdGitHub = idGitHub;
+
+            DefinirPerfis();
         }
         #endregion Construtores
 
 
         #region Métodos
+        private void DefinirPerfis()
+        {
+            if (Id == null)
+            {
+                return;
+            }
+
+            string idString = Id.ToString();
+
+            PerfilGitHub = new PerfilGitHub(idString);
+        }
+
         public static Usuario? extrairObjetoDoReader(NpgsqlDataReader reader)
         {
             int? id = reader.GetInt32("id");
@@ -45,20 +59,19 @@ namespace Projeto.Models
             string? email = reader.GetString("email");
             string? apelido = reader.GetString("apelido");
             string? senha = reader.GetString("senha");
-            string? idGitHub = reader.GetString("id_github");
 
             if (id == null || nomeCompleto == null || email == null || apelido == null || senha == null)
             {
                 return null;
             }
 
-            Usuario? usuario = new Usuario(id, nomeCompleto, email, apelido, senha, idGitHub);
+            Usuario? usuario = new Usuario(id, nomeCompleto, email, apelido, senha);
             return usuario;
         }
 
         public static Usuario? BuscarPorApelido(string apelido)
         {
-            NpgsqlParameter paramApelido = new ("@apelido", apelido);
+            NpgsqlParameter paramApelido = new("@apelido", apelido);
             string comando = string.Concat("SELECT * FROM ", nomeDaTabela, " WHERE apelido = @apelido");
 
             Usuario? usuario = conexao.ExecutarUnico(comando, [paramApelido], true, extrairObjetoDoReader);
@@ -98,34 +111,7 @@ namespace Projeto.Models
             }
         }
 
-        public static string? BuscarIdGitHub(int? id)
-        {
-            try
-            {
-                NpgsqlParameter paramId = new NpgsqlParameter("@id", id);
-                string comando = string.Concat("SELECT id_github FROM ", nomeDaTabela, " WHERE id = @id");
-
-                string? codigo = conexao.ExecutarUnico(comando, [paramId], true, Conexao.ExtrairString);
-                return codigo;
-            }
-
-            catch (Exception err)
-            {
-                Console.WriteLine(err.Message);
-                return null;
-            }
-        }
-
-        public string? BuscarIdGitHub()
-        {
-            if (Id == null)
-            {
-                return null;
-            }
-
-            return BuscarIdGitHub(Id);
-        }
-
+        // TODO: jogar no perfilgithub
         public static bool DefinirIdGitHub(int? id, string codigo)
         {
             try
@@ -140,6 +126,7 @@ namespace Projeto.Models
                 string comando = string.Concat("UPDATE ", nomeDaTabela, " SET id_github = @id_github WHERE id = @id");
 
                 conexao.ExecutarUnico<string>(comando, [paramId, paramIdGitHub], false, default);
+
                 return true;
             }
 

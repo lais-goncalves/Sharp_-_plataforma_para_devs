@@ -5,8 +5,8 @@ namespace Projeto.Dados
 {
     public interface ITabela<T> where T : ITabela<T>
     {
-        public static virtual Conexao conexao { get; set; }
-        public virtual static string nomeDaTabela { get; set; }
+        public abstract static Conexao conexao { get; set; }
+        public abstract static string nomeDaTabela { get; set; }
 
 
         public static abstract T? extrairObjetoDoReader(NpgsqlDataReader reader);

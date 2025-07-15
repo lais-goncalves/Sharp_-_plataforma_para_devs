@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
-using Projeto.Models;
 using Microsoft.AspNetCore.Http;
+using Projeto.Models;
 
 namespace Projeto.Config
 {

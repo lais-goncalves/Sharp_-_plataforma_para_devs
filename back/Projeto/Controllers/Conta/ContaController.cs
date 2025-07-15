@@ -23,7 +23,7 @@ namespace Projeto.Controllers.Conta
                     return Ok("Usuário não logado.");
                 }
 
-                return Ok(UsuarioLogado);
+                return Ok(UsuarioLogado?.Id);
             }
 
             catch (Exception err)
@@ -164,7 +164,7 @@ namespace Projeto.Controllers.Conta
                     
                     else
                     {
-                        string? idGitHubUsuario = UsuarioLogado?.BuscarIdGitHub();
+                        string? idGitHubUsuario = UsuarioLogado?.PerfilGitHub?.Id;
 
                         if (idGitHubUsuario == null)
                         {
@@ -200,7 +200,7 @@ namespace Projeto.Controllers.Conta
             {
                 if (usuarioEstaLogado)
                 {
-                    string? idGitHub = UsuarioLogado?.BuscarIdGitHub();
+                    string? idGitHub = UsuarioLogado?.PerfilGitHub?.Id;
 
                     if (idGitHub != null)
                     {
