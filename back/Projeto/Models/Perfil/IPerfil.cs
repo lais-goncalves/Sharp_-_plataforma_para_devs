@@ -10,9 +10,9 @@
 
         protected abstract void BuscarInfoDaFonte();
 
-        protected abstract string? BuscarInfoDoBanco(string idPerfilSharp);
+        protected abstract void BuscarInfoDoBanco(int? idPerfilSharp);
 
-        protected void BuscarTodasAsInfomacoes(string idPerfilSharp)
+        protected void BuscarTodasAsInfomacoes(int? idPerfilSharp)
         {
             BuscarInfoDoBanco(idPerfilSharp);
             BuscarInfoDaFonte();

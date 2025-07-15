@@ -47,9 +47,7 @@ namespace Projeto.Models
                 return;
             }
 
-            string idString = Id.ToString();
-
-            PerfilGitHub = new PerfilGitHub(idString);
+            PerfilGitHub = new PerfilGitHub(Id);
         }
 
         public static Usuario? extrairObjetoDoReader(NpgsqlDataReader reader)
