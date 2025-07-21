@@ -9,22 +9,25 @@ namespace Projeto.Models.Perfil
     public class PerfilGitHub : IPerfil
     {
         [JsonIgnore]
+        public int IdPerfilSharp { get; set; }
+        [JsonIgnore]
         public string? Id { get; set; }
         public string? Apelido { get; }
-        public string? NomeCompleto { get; }
-        public HttpClient ClienteHttp => new HttpClient();
         public static string? UrlSite => "https://api.github.com";
 
         public PerfilGitHub(int? idPerfilSharp)
         {
             if (idPerfilSharp != null)
             {
-                BuscarInfoDoBanco(idPerfilSharp);
+                IdPerfilSharp = (int) idPerfilSharp;
+                BuscarInfoDoBanco();
                 BuscarInfoDaFonte();
             }
         }
 
-        public async void BuscarInfoDaFonte()
+        // TODO: criar método para buscar informações já com o header adicionado
+
+        public void BuscarInfoDaFonte()
         {
             try
             {
@@ -39,7 +42,7 @@ namespace Projeto.Models.Perfil
                 buscaPerfil.Headers.Add("Accept", "application/json");
                 buscaPerfil.Headers.UserAgent.ParseAdd("Sharp");
 
-                var retornoInfoUsuario = ClienteHttp.Send(buscaPerfil);
+                var retornoInfoUsuario = IPerfil.ClienteHttp.Send(buscaPerfil);
 
                 if (!retornoInfoUsuario.IsSuccessStatusCode)
                 {
@@ -57,13 +60,13 @@ namespace Projeto.Models.Perfil
             }
         }
 
-        public void BuscarInfoDoBanco(int? idPerfilSharp)
+        public void BuscarInfoDoBanco()
         {
             try
             {
                 Conexao conexao = Conexao.instancia;
 
-                NpgsqlParameter paramId = new NpgsqlParameter("@id", idPerfilSharp);
+                NpgsqlParameter paramId = new NpgsqlParameter("@id", IdPerfilSharp);
                 paramId.DbType = System.Data.DbType.Int32;
                 string comando = string.Concat("SELECT id_github FROM ", Usuario.nomeDaTabela, " WHERE id = @id");
 
@@ -73,6 +76,26 @@ namespace Projeto.Models.Perfil
             catch (Exception err)
             {
                 Console.WriteLine(err.Message);
+            }
+        }
+
+        public bool DefinirInfoNoBanco(string idGitHub)
+        {
+            try
+            {
+                NpgsqlParameter paramId = new NpgsqlParameter("@id", IdPerfilSharp);
+                NpgsqlParameter paramIdGitHub = new NpgsqlParameter("@id_github", idGitHub);
+                string comando = string.Concat("UPDATE ", Usuario.nomeDaTabela, " SET id_github = @id_github WHERE id = @id");
+
+                IPerfil.conexao.ExecutarUnico<string>(comando, [paramId, paramIdGitHub], false, default);
+
+                return true;
+            }
+
+            catch (Exception)
+            {
+                Console.WriteLine("Usuário não encontrado.");
+                return false;
             }
         }
     }

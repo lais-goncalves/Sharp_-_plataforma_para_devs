@@ -168,18 +168,15 @@ namespace Projeto.Controllers.Conta
 
                         if (idGitHubUsuario == null)
                         {
-                            bool idFoiDefinido = UsuarioLogado.DefinirIdGitHub(idGitHubUsuario);
+                            bool idFoiDefinido = (bool) UsuarioLogado?.PerfilGitHub?.DefinirInfoNoBanco(idInfoGitHub);
 
                             if (idFoiDefinido == false)
                             {
                                 throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
                             }
-                        } else
+                        } else if (idGitHubUsuario != idInfoGitHub)
                         {
-                            if (idGitHubUsuario != idInfoGitHub)
-                            {
-                                throw new Exception("Já existe um usuário logado nesta conta. Tente usar outra conta.");
-                            }
+                            throw new Exception("Já existe um usuário logado nesta conta. Tente usar outra conta.");
                         }
                     }
 

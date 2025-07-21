@@ -109,42 +109,6 @@ namespace Projeto.Models
             }
         }
 
-        // TODO: jogar no perfilgithub
-        public static bool DefinirIdGitHub(int? id, string codigo)
-        {
-            try
-            {
-                if (codigo == null)
-                {
-                    throw new Exception("O código não pode estar nulo.");
-                }
-
-                NpgsqlParameter paramId = new NpgsqlParameter("@id", id);
-                NpgsqlParameter paramIdGitHub = new NpgsqlParameter("@id_github", codigo);
-                string comando = string.Concat("UPDATE ", nomeDaTabela, " SET id_github = @id_github WHERE id = @id");
-
-                conexao.ExecutarUnico<string>(comando, [paramId, paramIdGitHub], false, default);
-
-                return true;
-            }
-
-            catch (Exception)
-            {
-                Console.WriteLine("Usuário não encontrado.");
-                return false;
-            }
-        }
-
-        public bool DefinirIdGitHub(string? codigo)
-        {
-            if (Id == null || codigo == null)
-            {
-                return false;
-            }
-
-            return DefinirIdGitHub(Id, codigo);
-        }
-
         public static bool Registrar(string apelido, string senha)
         {
             //Resultado<bool> resultado = new();
