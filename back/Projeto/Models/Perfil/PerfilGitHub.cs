@@ -1,5 +1,7 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Collections.Specialized;
+using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
+using System.Web;
 using Npgsql;
 using NuGet.Common;
 using Projeto.Dados;
@@ -14,6 +16,10 @@ namespace Projeto.Models.Perfil
         public string? Id { get; set; }
         public string? Apelido { get; }
         public static string? UrlSite => "https://api.github.com";
+
+        public static string? CLIENT_ID = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_ID"];
+
+        private static string? CLIENT_SECRET = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_SECRET"];
 
         public PerfilGitHub(int? idPerfilSharp)
         {
@@ -31,11 +37,6 @@ namespace Projeto.Models.Perfil
         {
             try
             {
-                if (Id == null)
-                {
-                    return;
-                }
-
                 string urlBusca = UrlSite + "/user/" + Id;
                 HttpRequestMessage buscaPerfil = new(HttpMethod.Get, urlBusca);
 
@@ -70,7 +71,7 @@ namespace Projeto.Models.Perfil
                 paramId.DbType = System.Data.DbType.Int32;
                 string comando = string.Concat("SELECT id_github FROM ", Usuario.nomeDaTabela, " WHERE id = @id");
 
-                Id = conexao.ExecutarUnico(comando, [paramId], true, Conexao.ExtrairString);
+                Id = IPerfil.Conexao.ExecutarUnico(comando, [paramId], true, Conexao.ExtrairString);
             }
 
             catch (Exception err)
@@ -87,7 +88,7 @@ namespace Projeto.Models.Perfil
                 NpgsqlParameter paramIdGitHub = new NpgsqlParameter("@id_github", idGitHub);
                 string comando = string.Concat("UPDATE ", Usuario.nomeDaTabela, " SET id_github = @id_github WHERE id = @id");
 
-                IPerfil.conexao.ExecutarUnico<string>(comando, [paramId, paramIdGitHub], false, default);
+                IPerfil.Conexao.ExecutarUnico<string>(comando, [paramId, paramIdGitHub], false, default);
 
                 return true;
             }

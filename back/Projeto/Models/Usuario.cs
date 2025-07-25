@@ -14,7 +14,7 @@ namespace Projeto.Models
         public static Conexao conexao { get; set; } = Conexao.instancia;
 
         [JsonIgnore]
-        public int? Id { get; set; }
+        public int Id { get; set; }
         public string? NomeCompleto { get; set; }
         [JsonIgnore]
         public string? Email { get; set; }
@@ -26,7 +26,7 @@ namespace Projeto.Models
 
 
         #region Construtores
-        public Usuario(int? id, string? nomeCompleto, string? email, string? apelido, string? senha)
+        public Usuario(int id, string? nomeCompleto, string? email, string? apelido, string? senha)
         {
             Id = id;
             NomeCompleto = nomeCompleto;
@@ -42,11 +42,6 @@ namespace Projeto.Models
         #region Métodos
         private void DefinirPerfis()
         {
-            if (Id == null)
-            {
-                return;
-            }
-
             PerfilGitHub = new PerfilGitHub(Id);
         }
 
@@ -62,8 +57,8 @@ namespace Projeto.Models
             {
                 return null;
             }
-
-            Usuario? usuario = new Usuario(id, nomeCompleto, email, apelido, senha);
+             
+            Usuario? usuario = new Usuario((int) id, nomeCompleto, email, apelido, senha);
             return usuario;
         }
 

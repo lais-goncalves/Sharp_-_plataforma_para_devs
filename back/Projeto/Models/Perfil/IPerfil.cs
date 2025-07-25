@@ -8,8 +8,8 @@ namespace Projeto.Models.Perfil
         protected string? Id { get; set; }
         protected string? Apelido { get; }
         protected abstract static string? UrlSite { get; }
-        protected static HttpClient ClienteHttp => new HttpClient();
-        protected static Conexao conexao => Conexao.instancia;
+        protected static HttpClient ClienteHttp = new HttpClient();
+        protected static Conexao Conexao = Conexao.instancia;
 
         protected abstract void BuscarInfoDaFonte();
 
