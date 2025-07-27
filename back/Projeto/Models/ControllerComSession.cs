@@ -9,7 +9,7 @@ namespace Projeto.Models
         protected Usuario? UsuarioLogado
         {
             get => Sessao.BuscarUsuarioLogado();
-            set => Sessao.DefinirUsuarioLogado(value);
+            private set => Sessao.DefinirUsuarioLogado(value);
         }
 
         public bool usuarioEstaLogado { get => UsuarioLogado != null && UsuarioLogado.Id > 0; }
@@ -17,6 +17,11 @@ namespace Projeto.Models
         private Sessao buscarSessao()
         {
             return new Sessao(HttpContext);
+        }
+
+        protected void RealizarLogin(Usuario novoUsuario)
+        {
+            UsuarioLogado = novoUsuario;
         }
 
         protected void RealizarLogoff()

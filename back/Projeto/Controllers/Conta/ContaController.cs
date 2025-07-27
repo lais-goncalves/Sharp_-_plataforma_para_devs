@@ -2,8 +2,6 @@
 using System.Web;
 using Microsoft.AspNetCore.Mvc;
 using Projeto.Models;
-using System.Net.Http.Headers;
-using Newtonsoft.Json;
 using Projeto.Models.Perfil;
 
 namespace Projeto.Controllers.Conta
@@ -80,59 +78,66 @@ namespace Projeto.Controllers.Conta
         }
 
         [HttpGet]
+        public void LogarComGitHub()
+        {
+            try
+            {
+                if (usuarioEstaLogado)
+                {
+                    string? idGitHub = UsuarioLogado?.PerfilGitHub?.Id;
+                    if (idGitHub != null)
+                    {
+                        return;
+                    }
+                }
+
+                string urlLogin = PerfilGitHub.BuscarURLLogin();
+                Response.Redirect(urlLogin);
+            }
+
+            catch (Exception) { }
+        }
+
+        [HttpGet]
         public async Task<ActionResult> RetornoLoginGitHub(string code)
         {
             try
             {
-                Usuario? usuarioAutenticadoComGitHub = usuarioEstaLogado ? UsuarioLogado : new Usuario();
-
-                string? tokenDeAcesso = await usuarioAutenticadoComGitHub?.PerfilGitHub?.BuscarTokenAutenticacao(code);
-
-                if (tokenDeAcesso == null)
-                {
-                    throw new Exception("Login mal sucedido. Tente novamente.");
-                }
-
-                // PASSO 3 -> USAR TOKEN PRA PEGAR INFORMAÇÕES DO USUÁRIO
-                string? idInfoGitHub = usuarioAutenticadoComGitHub.PerfilGitHub.BuscarId(tokenDeAcesso);
-
+                string? idInfoGitHub = await PerfilGitHub.LogarEBuscarId(code);
                 if (idInfoGitHub == null)
                 {
-                  throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
+                    throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
                 }
 
                 // caso usuário não esteja logado, logar
                 if (!usuarioEstaLogado)
                 {
-                    usuarioAutenticadoComGitHub = Usuario.BuscarPorIdGitHub(idInfoGitHub);
-
-                    if (usuarioAutenticadoComGitHub == null)
+                    Usuario? usuarioAutenticado = Usuario.BuscarPorIdGitHub(idInfoGitHub);
+                    if (usuarioAutenticado == null)
                     {
                         throw new Exception("Para logar-se com o GitHub, é necessário criar uma conta primeiro.");
                     }
 
-                    UsuarioLogado = usuarioAutenticadoComGitHub;
+                    RealizarLogin(usuarioAutenticado);
                 }
 
                 else
                 {
                     string? idGitHubUsuario = UsuarioLogado?.PerfilGitHub?.Id;
-
-                    // definir ID do github no banco caso não esteja definido
                     if (idGitHubUsuario == null)
                     {
-                        bool idFoiDefinido = (bool) UsuarioLogado?.PerfilGitHub?.DefinirInfoNoBanco(idInfoGitHub);
-
-                        if (idFoiDefinido == false)
+                        // definir ID do github no banco caso não esteja definido
+                        bool idFoiDefinido = UsuarioLogado.PerfilGitHub.DefinirInfoNoBanco(idInfoGitHub);
+                        if (!idFoiDefinido)
                         {
                             throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
                         }
-                    } 
-                    
+                    }
+
                     // caso já esteja definido, mas o ID buscado é diferente do banco
                     else if (idGitHubUsuario != idInfoGitHub)
                     {
-                        throw new Exception("Já existe um usuário logado nesta conta. Tente usar outra conta.");
+                        throw new Exception("Já existe um usuário logado nesta conta. Tente usar outra.");
                     }
                 }
 
@@ -143,38 +148,6 @@ namespace Projeto.Controllers.Conta
             {
                 return BadRequest(err.Message);
             }
-        }
-
-        [HttpGet]
-        public void LogarComGitHub()
-        {
-            try
-            {
-                if (usuarioEstaLogado)
-                {
-                    string? idGitHub = UsuarioLogado?.PerfilGitHub?.Id;
-
-                    if (idGitHub != null)
-                    {
-                        return;
-                    }
-                }
-
-
-                if (GHClientId == null || GHClientSecret == null)
-                {
-                    throw new Exception("Configuração de API incorreta: GitHub Client ID e/ou SECRET inexistente(s).");
-                }
-
-                NameValueCollection? query = HttpUtility.ParseQueryString(string.Empty);
-                query["client_id"] = GHClientId;
-                string? queryString = query.ToString();
-
-                string urlLogin = "https://github.com/login/oauth/authorize?" + queryString;
-                Response.Redirect(urlLogin);
-            }
-
-            catch (Exception) { }
         }
 
         [HttpGet]

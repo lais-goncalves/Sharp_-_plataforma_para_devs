@@ -1,11 +1,13 @@
 ﻿using System.Collections.Specialized;
 using System.Net.Http.Headers;
 using System.Web;
+using Azure;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Npgsql;
 using NuGet.Common;
 using Projeto.Dados;
-using Projeto.Models.Perfil.Autenticacao;
+using System.Web;
 
 namespace Projeto.Models.Perfil
 {
@@ -17,11 +19,11 @@ namespace Projeto.Models.Perfil
         public string? Id { get; set; }
         public string? Apelido { get; }
 
-        protected static Conexao conexao = Conexao.instancia;
         protected static string? urlSite = "https://api.github.com";
-        protected static HttpClient clienteHttp = new HttpClient();
+        private static Conexao conexao = Conexao.instancia;
+        private static HttpClient clienteHttp = new HttpClient();
 
-        public static string? CLIENT_ID = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_ID"];
+        private static string? CLIENT_ID = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_ID"];
         private static string? CLIENT_SECRET = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_SECRET"];
 
         public PerfilGitHub(int? idPerfilSharp)
@@ -101,12 +103,23 @@ namespace Projeto.Models.Perfil
             }
         }
 
-        public async Task<string?> BuscarTokenAutenticacao(string codigo)
+        public static string BuscarURLLogin()
+        {
+            NameValueCollection? query = HttpUtility.ParseQueryString(string.Empty);
+            query["client_id"] = CLIENT_ID;
+
+            string? queryString = query.ToString();
+
+            string urlLogin = "https://github.com/login/oauth/authorize?" + queryString;
+            return urlLogin;
+        }
+
+        protected static async Task<string?> BuscarTokenAutenticacaoDaFonte(string codigoDoUsuario)
         {
             NameValueCollection? query = HttpUtility.ParseQueryString(string.Empty);
             query["client_id"] = CLIENT_ID;
             query["client_secret"] = CLIENT_SECRET;
-            query["code"] = codigo;
+            query["code"] = codigoDoUsuario;
 
             string? queryString = query.ToString();
             string urlToken = "https://github.com/login/oauth/access_token?" + queryString;
@@ -125,7 +138,7 @@ namespace Projeto.Models.Perfil
             return token;
         }
 
-        public string? BuscarId(string tokenDeAcesso)
+        protected static string? BuscarIdDaFonte(string tokenDeAcesso)
         {
             try
             {
@@ -159,6 +172,27 @@ namespace Projeto.Models.Perfil
             catch(Exception err)
             {
                 Console.WriteLine(err.Message);
+                return null;
+            }
+        }
+
+        public static async Task<string?> LogarEBuscarId(string codigoDoUsuario)
+        {
+            try
+            {
+                string? tokenDeAcesso = await BuscarTokenAutenticacaoDaFonte(codigoDoUsuario);
+                if (tokenDeAcesso == null)
+                {
+                    throw new Exception("Login mal sucedido. Tente novamente.");
+                }
+
+                string? idInfoGitHub = BuscarIdDaFonte(tokenDeAcesso);
+                return idInfoGitHub;
+            }
+
+            catch (Exception err)
+            {
+                Console.WriteLine(err);
                 return null;
             }
         }
