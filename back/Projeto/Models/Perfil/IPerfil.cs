@@ -5,9 +5,11 @@ namespace Projeto.Models.Perfil
 {
     public interface IPerfil
     {
-        protected int IdPerfilSharp { get; set; }
-        protected string? Id { get; set; }
+        protected int IdPerfilSharp { get; }
+        protected string? Id { get; }
         protected string? Apelido { get; }
+
+        public bool Existe => Id is not null;
 
         protected abstract void BuscarInfoDaFonte();
 
@@ -18,7 +20,5 @@ namespace Projeto.Models.Perfil
             BuscarInfoDoBanco();
             BuscarInfoDaFonte();
         }
-
-        protected abstract bool DefinirInfoNoBanco(string idPerfil);
     }
 }

@@ -8,10 +8,6 @@ namespace Projeto.Controllers.Conta
 {
     [Route("[controller]/[action]")]
     public class ContaController : ControllerComSession {
-        private string? GHClientId = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_ID"];
-        private string? GHClientSecret = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_SECRET"];
-        protected HttpClient clienteHttp = new();
-
         [HttpGet]
         public ActionResult BuscarUsuarioLogado()
         {
@@ -62,7 +58,6 @@ namespace Projeto.Controllers.Conta
             try
             {
                 bool logadoComSucesso = RealizarLogin(apelido, senha);
-
                 if (!logadoComSucesso)
                 {
                     throw new Exception("Usuário e/ou senha incorreto(s).");
@@ -95,7 +90,10 @@ namespace Projeto.Controllers.Conta
                 Response.Redirect(urlLogin);
             }
 
-            catch (Exception) { }
+            catch (Exception err) 
+            {
+               Console.WriteLine(err.Message);
+            }
         }
 
         [HttpGet]
@@ -118,7 +116,11 @@ namespace Projeto.Controllers.Conta
                         throw new Exception("Para logar-se com o GitHub, é necessário criar uma conta primeiro.");
                     }
 
-                    RealizarLogin(usuarioAutenticado);
+                    bool logadoComSucesso = RealizarLogin(usuarioAutenticado);
+                    if (!logadoComSucesso)
+                    {
+                        throw new Exception("Houve um problema ao tentar logar. Tente novamente.");
+                    }
                 }
 
                 else
@@ -127,7 +129,7 @@ namespace Projeto.Controllers.Conta
                     if (idGitHubUsuario == null)
                     {
                         // definir ID do github no banco caso não esteja definido
-                        bool idFoiDefinido = UsuarioLogado.PerfilGitHub.DefinirInfoNoBanco(idInfoGitHub);
+                        bool idFoiDefinido = UsuarioLogado.PerfilGitHub.CadastrarId(idInfoGitHub);
                         if (!idFoiDefinido)
                         {
                             throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
