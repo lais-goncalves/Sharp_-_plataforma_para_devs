@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Projeto.Models;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
+using Projeto.Models.Perfil;
 
 namespace Projeto.Controllers.Conta
 {
@@ -83,105 +84,59 @@ namespace Projeto.Controllers.Conta
         {
             try
             {
-                if (code == null)
-                {
-                    throw new Exception("Login mal sucedido. Tente novamente.");
-                }
+                Usuario? usuarioAutenticadoComGitHub = usuarioEstaLogado ? UsuarioLogado : new Usuario();
 
-                if (GHClientId == null || GHClientSecret == null)
-                {
-                    throw new Exception("Configuração de API incorreta: GitHub Client ID e/ou SECRET inexistente(s).");
-                }
+                string? tokenDeAcesso = await usuarioAutenticadoComGitHub?.PerfilGitHub?.BuscarTokenAutenticacao(code);
 
-                // PASSO 1 -> BUSCAR TOKEN NO GITHUB USANDO CODIGO DE ACESSO (CODE)
-                NameValueCollection? query = HttpUtility.ParseQueryString(string.Empty);
-                query["client_id"] = GHClientId;
-                query["client_secret"] = GHClientSecret;
-                query["code"] = code;
-                string? queryString = query.ToString();
-
-                string urlToken = "https://github.com/login/oauth/access_token?" + queryString;
-                HttpResponseMessage postToken = await clienteHttp.PostAsync(urlToken, null);
-
-                if (!postToken.IsSuccessStatusCode)
-                {
-                    throw new Exception("Login mal sucedido. Tente novamente.");
-                }
-
-                // PASSO 2 -> PEGAR TOKEN NA STRING DE RETORNO DO GITHUB
-                string queryStringToken = postToken.Content.ReadAsStringAsync().Result;
-
-                NameValueCollection? queryToken = HttpUtility.ParseQueryString(queryStringToken);
-                string? token = queryToken["access_token"];
-
-                if (token == null)
+                if (tokenDeAcesso == null)
                 {
                     throw new Exception("Login mal sucedido. Tente novamente.");
                 }
 
                 // PASSO 3 -> USAR TOKEN PRA PEGAR INFORMAÇÕES DO USUÁRIO
-                using (HttpRequestMessage getInfoUsuario = new (HttpMethod.Get, "https://api.github.com/user"))
+                string? idInfoGitHub = usuarioAutenticadoComGitHub.PerfilGitHub.BuscarId(tokenDeAcesso);
+
+                if (idInfoGitHub == null)
                 {
-                    getInfoUsuario.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                    getInfoUsuario.Headers.Add("Accept", "application/json");
-                    getInfoUsuario.Headers.UserAgent.ParseAdd("Sharp");
+                  throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
+                }
 
-                    var retornoInfoUsuario = clienteHttp.Send(getInfoUsuario);
+                // caso usuário não esteja logado, logar
+                if (!usuarioEstaLogado)
+                {
+                    usuarioAutenticadoComGitHub = Usuario.BuscarPorIdGitHub(idInfoGitHub);
 
-                    if (!retornoInfoUsuario.IsSuccessStatusCode)
+                    if (usuarioAutenticadoComGitHub == null)
                     {
-                        throw new Exception("Login mal sucedido. Tente novamente.");
+                        throw new Exception("Para logar-se com o GitHub, é necessário criar uma conta primeiro.");
                     }
 
-                    // verificar se usuário já está conectado ao GitHub
-                    string? infoGitHubUsuario = retornoInfoUsuario.Content.ReadAsStringAsync().Result;
+                    UsuarioLogado = usuarioAutenticadoComGitHub;
+                }
 
-                    if (infoGitHubUsuario == null)
+                else
+                {
+                    string? idGitHubUsuario = UsuarioLogado?.PerfilGitHub?.Id;
+
+                    // definir ID do github no banco caso não esteja definido
+                    if (idGitHubUsuario == null)
                     {
-                        throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
-                    }
+                        bool idFoiDefinido = (bool) UsuarioLogado?.PerfilGitHub?.DefinirInfoNoBanco(idInfoGitHub);
 
-                    dynamic? objInfoGitHubUsuario = JsonConvert.DeserializeObject(infoGitHubUsuario);
-                    string? idInfoGitHub = objInfoGitHubUsuario?.id;
-
-                    if (idInfoGitHub == null)
-                    {
-                        throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
-                    }
-
-                    // caso usuário não esteja logado, logar
-                    if (!usuarioEstaLogado)
-                    {
-                        Usuario? usuario = Usuario.BuscarPorIdGitHub(idInfoGitHub);
-
-                        if (usuario == null)
+                        if (idFoiDefinido == false)
                         {
-                            throw new Exception("Para logar-se com o GitHub, é necessário criar uma conta primeiro.");
+                            throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
                         }
-
-                        UsuarioLogado = usuario;
                     } 
                     
-                    else
+                    // caso já esteja definido, mas o ID buscado é diferente do banco
+                    else if (idGitHubUsuario != idInfoGitHub)
                     {
-                        string? idGitHubUsuario = UsuarioLogado?.PerfilGitHub?.Id;
-
-                        if (idGitHubUsuario == null)
-                        {
-                            bool idFoiDefinido = (bool) UsuarioLogado?.PerfilGitHub?.DefinirInfoNoBanco(idInfoGitHub);
-
-                            if (idFoiDefinido == false)
-                            {
-                                throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
-                            }
-                        } else if (idGitHubUsuario != idInfoGitHub)
-                        {
-                            throw new Exception("Já existe um usuário logado nesta conta. Tente usar outra conta.");
-                        }
+                        throw new Exception("Já existe um usuário logado nesta conta. Tente usar outra conta.");
                     }
-
-                    return Ok("Login efetuado com sucesso.");
                 }
+
+                return Ok("Login efetuado com sucesso.");
             }
 
             catch (Exception err)

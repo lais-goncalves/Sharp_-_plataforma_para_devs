@@ -1,4 +1,5 @@
 ﻿using Projeto.Dados;
+using Projeto.Models.Perfil.Autenticacao;
 
 namespace Projeto.Models.Perfil
 {
@@ -7,9 +8,6 @@ namespace Projeto.Models.Perfil
         protected int IdPerfilSharp { get; set; }
         protected string? Id { get; set; }
         protected string? Apelido { get; }
-        protected abstract static string? UrlSite { get; }
-        protected static HttpClient ClienteHttp = new HttpClient();
-        protected static Conexao Conexao = Conexao.instancia;
 
         protected abstract void BuscarInfoDaFonte();
 

@@ -13,15 +13,23 @@ namespace Projeto.Models
         public static string nomeDaTabela { get; set; } = "Usuario";
         public static Conexao conexao { get; set; } = Conexao.instancia;
 
+        private int? _id;
+
         [JsonIgnore]
-        public int Id { get; set; }
+        public int? Id { 
+            get => _id; 
+            set {
+                _id = value;
+                DefinirPerfis();
+            } 
+        }
         public string? NomeCompleto { get; set; }
         [JsonIgnore]
         public string? Email { get; set; }
         public string? Apelido { get; set; }
         [JsonIgnore]
         public string? Senha { get; set; }
-        public PerfilGitHub? PerfilGitHub { get; set; }
+        public PerfilGitHub PerfilGitHub { get; set; }
         #endregion Propriedades
 
 
@@ -36,11 +44,15 @@ namespace Projeto.Models
 
             DefinirPerfis();
         }
+
+        public Usuario() {
+            DefinirPerfis();
+        }
         #endregion Construtores
 
 
         #region Métodos
-        private void DefinirPerfis()
+        public void DefinirPerfis()
         {
             PerfilGitHub = new PerfilGitHub(Id);
         }
