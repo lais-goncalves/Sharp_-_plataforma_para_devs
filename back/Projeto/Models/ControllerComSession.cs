@@ -5,7 +5,7 @@ namespace Projeto.Models
 {
     public class ControllerComSession : Controller
     {
-        protected Sessao Sessao => buscarSessao();
+        protected SessionSetter Sessao => buscarSessao();
         protected Usuario? UsuarioLogado
         {
             get => Sessao.BuscarUsuarioLogado();
@@ -14,11 +14,10 @@ namespace Projeto.Models
 
         public bool usuarioEstaLogado => UsuarioLogado != null;
 
-        private Sessao buscarSessao()
+        private SessionSetter buscarSessao()
         {
-            return new Sessao(HttpContext);
+            return new SessionSetter(HttpContext);
         }
-
 
         protected void RealizarLogoff()
         {
