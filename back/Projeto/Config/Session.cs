@@ -1,25 +1,38 @@
-﻿using Projeto.Models;
+﻿using Newtonsoft.Json;
+using Projeto.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace Projeto.Config
 {
-    public abstract class Session<T>
+    public class Session
     {
-        protected abstract SessionSetter sessao { get; set; }
-        public abstract string nomeString { get; }
+        public HttpContext HttpContext { get; set; }
+        public static string UsuarioLogadoStr => "UsuarioLogado";
 
-        public Session(SessionSetter sessao)
+        public Session(HttpContext HttpContext)
         {
-            this.sessao = sessao;
+            this.HttpContext = HttpContext;
         }
 
-        public T? Buscar()
+        public void Definir(string key, object? value)
         {
-            return sessao.Buscar<T>(nomeString);
+            HttpContext.Session.SetString(key, JsonConvert.SerializeObject(value));
         }
 
-        protected void Definir(T? novoUsuarioLogado)
+        public T? Buscar<T>(string key)
         {
-            sessao.Definir(nomeString, novoUsuarioLogado);
+            var value = HttpContext.Session.GetString(key);
+            return value == null ? default : JsonConvert.DeserializeObject<T>(value);
+        }
+
+        public Usuario? BuscarUsuarioLogado()
+        {
+            return Buscar<Usuario>(UsuarioLogadoStr);
+        }
+
+        public void DefinirUsuarioLogado(Usuario? novoUsuario)
+        {
+            Definir(UsuarioLogadoStr, novoUsuario);
         }
     }
 }

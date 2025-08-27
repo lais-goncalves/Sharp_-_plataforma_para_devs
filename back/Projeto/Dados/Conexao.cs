@@ -88,7 +88,7 @@ namespace Projeto.Dados
             return resultado;
         }
 
-        private List<T?>? _executarComando<T>(string comando, List<NpgsqlParameter>? parametros, bool buscarUnico, bool retornarResultados, ExtrairDados<T>? extrairObjetoDoReader)
+        private List<T?>? _executarComando<T>(string comando, List<NpgsqlParameter>? parametros, bool buscarUnico, bool retornarRetornoAPIs, ExtrairDados<T>? extrairObjetoDoReader)
         {
             NpgsqlConnection? conn = null;
             NpgsqlCommand? cmd = null;
@@ -97,7 +97,7 @@ namespace Projeto.Dados
 
             try
             {
-                if (retornarResultados && extrairObjetoDoReader == null)
+                if (retornarRetornoAPIs && extrairObjetoDoReader == null)
                 {
                     throw new Exception("Para retornar resultados, é necessário definir um método de extração.");
                 }
@@ -113,7 +113,7 @@ namespace Projeto.Dados
 
                     reader = cmd.ExecuteReader();
 
-                    if (retornarResultados)
+                    if (retornarRetornoAPIs)
                     {
                         while (reader != null && reader.Read())
                         {
@@ -163,11 +163,11 @@ namespace Projeto.Dados
             }
         }
 
-        public List<T?>? Executar<T>(string comando, List<NpgsqlParameter>? parametros = null, bool retornarResultados = false, ExtrairDados<T>? extrairObjetoDoReader = null)
+        public List<T?>? Executar<T>(string comando, List<NpgsqlParameter>? parametros = null, bool retornarRetornoAPIs = false, ExtrairDados<T>? extrairObjetoDoReader = null)
         {
             try
             {
-                return _executarComando(comando, parametros, false, retornarResultados, extrairObjetoDoReader);
+                return _executarComando(comando, parametros, false, retornarRetornoAPIs, extrairObjetoDoReader);
             }
 
             catch (Exception err)
@@ -177,11 +177,11 @@ namespace Projeto.Dados
             }
         }
 
-        public T? ExecutarUnico<T>(string comando, List<NpgsqlParameter>? parametros = null, bool retornarResultados = false, ExtrairDados<T>? extrairObjetoDoReader = null)
+        public T? ExecutarUnico<T>(string comando, List<NpgsqlParameter>? parametros = null, bool retornarRetornoAPIs = false, ExtrairDados<T>? extrairObjetoDoReader = null)
         {
             try
             {
-                List<T?>? resultado = _executarComando(comando, parametros, true, retornarResultados, extrairObjetoDoReader);
+                List<T?>? resultado = _executarComando(comando, parametros, true, retornarRetornoAPIs, extrairObjetoDoReader);
 
                 if (resultado != null && resultado?.Count > 0)
                 {

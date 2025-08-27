@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 using Npgsql;
 using NuGet.Common;
 using Projeto.Dados;
-using System.Web;
 
 namespace Projeto.Models.Perfil
 {
@@ -31,6 +30,7 @@ namespace Projeto.Models.Perfil
                 BuscarTodasAsInfomacoes();
             }
         }
+
         private void BuscarTodasAsInfomacoes()
         {
             BuscarInfoDoBanco();
@@ -199,7 +199,7 @@ namespace Projeto.Models.Perfil
             }
         }
 
-        public static async Task<string?> LogarEBuscarId(string codigoDoUsuario)
+        public static async Task<string?> BuscarIdELogar(string codigoDoUsuario)
         {
             try
             {

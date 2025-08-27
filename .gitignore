@@ -1,5 +1,8 @@
 config.toml
 
+_front/
+_front/*
+
 *.suo
 *.user
 *.userosscache

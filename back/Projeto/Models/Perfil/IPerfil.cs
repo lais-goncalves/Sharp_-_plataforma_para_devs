@@ -1,11 +1,13 @@
-﻿using Projeto.Dados;
-using Projeto.Models.Perfil.Autenticacao;
+﻿using System.Text.Json.Serialization;
+using Projeto.Dados;
 
 namespace Projeto.Models.Perfil
 {
     public interface IPerfil
     {
+        [JsonIgnore]
         protected int IdPerfilSharp { get; }
+        [JsonIgnore]
         protected string? Id { get; }
         protected string? Apelido { get; }
 

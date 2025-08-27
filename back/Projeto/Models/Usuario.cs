@@ -29,6 +29,7 @@ namespace Projeto.Models
         public string? Apelido { get; set; }
         [JsonIgnore]
         public string? Senha { get; set; }
+        [JsonIgnore]
         public PerfilGitHub PerfilGitHub { get; set; }
         #endregion Propriedades
 
@@ -95,53 +96,6 @@ namespace Projeto.Models
         public static List<Usuario?>? BuscarTodos()
         {
             return ITabela<Usuario>.buscarTodos();
-        }
-
-        public static Usuario? Login(string apelido, string senha)
-        {
-            try
-            {
-                NpgsqlParameter paramApelido = new NpgsqlParameter("@apelido", apelido);
-                NpgsqlParameter paramSenha = new NpgsqlParameter("@senha", senha);
-                string comando = string.Concat("SELECT * FROM ", nomeDaTabela, " WHERE apelido = @apelido AND senha = @senha");
-
-                Usuario? usuario = conexao.ExecutarUnico(comando, [paramApelido, paramSenha], true, extrairObjetoDoReader);
-                return usuario;
-            }
-
-            catch (Exception err)
-            {
-                Console.WriteLine(err.Message);
-                return null;
-            }
-        }
-
-        public static bool Registrar(string apelido, string senha)
-        {
-            //Resultado<bool> resultado = new();
-
-            //try
-            //{
-            //    Usuario usuario = new Usuario(apelido, senha);
-
-            //    if (JaExiste(apelido))
-            //    {
-            //        throw new Exception("Este apelido já está sendo usado. Tente outro.");
-            //    }
-
-            //    Entidades.Usuario.Add(usuario);
-            //    Entidades.SaveChanges();
-            //    resultado.Item = true;
-            //}
-
-            //catch (Exception err)
-            //{
-            //    resultado.Erro = err;
-            //}
-
-            //return resultado;
-
-            return default;
         }
         #endregion Métodos
     }
