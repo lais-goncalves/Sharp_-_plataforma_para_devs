@@ -1,9 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 using Projeto.Dados;
 
-namespace Projeto.Models.Perfil
+namespace Projeto.Models.Usuarios.Contas
 {
-    public interface IPerfil
+    public interface IConta
     {
         [JsonIgnore]
         protected int IdPerfilSharp { get; }

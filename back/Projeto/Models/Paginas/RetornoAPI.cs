@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json;
 
-namespace Projeto.Config
+namespace Projeto.Models.Paginas
 {
-    public class RetornoAPI<T> (T? dados = default, string? erro = null)
+    public class RetornoAPI<T>(T? dados = default, string? erro = null)
     {
         public T? Dados { get; protected set; } = dados;
 
-        public string? Erro { get; protected set;  } = erro;
+        public string? Erro { get; protected set; } = erro;
 
         public bool TemErro()
         {
@@ -18,7 +18,7 @@ namespace Projeto.Config
             return Dados != null;
         }
 
-        public string DefinirErro (string mensagem)
+        public string DefinirErro(string mensagem)
         {
             Erro = mensagem;
             return Erro;

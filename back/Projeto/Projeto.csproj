@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Dados\Erro.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Remove="Projeto.dll.config" />
   </ItemGroup>
 
@@ -23,6 +19,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="7.2.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="7.2.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="7.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Config\" />
+    <Folder Include="Models\Usuarios\Perfis\TiposDePerfis\" />
   </ItemGroup>
 
 </Project>

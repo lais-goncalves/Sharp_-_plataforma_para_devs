@@ -3,21 +3,23 @@ using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using Npgsql;
 using Projeto.Dados;
+using Projeto.Models.Bancos;
+using Projeto.Models.Usuarios;
 
 namespace Projeto.Models
 {
-    public class Post : ITabela<Post>
+    public class Post
     {
         #region Propriedades
-        public static Conexao conexao { get; set; } = Conexao.instancia;
-        public static string nomeDaTabela { get; set; } = "Post";
+        static TabelaBanco<Post> tabela = ConfigBanco.BuscarTabela<Post>("Post");
 
         [JsonIgnore]
         public int? Id { get; set; }
-        public string? Titulo { get; set; }
-        public string? Texto { get; set; }
         [JsonIgnore]
         public int? PostadoPor { get; set; }
+
+        public string? Titulo { get; set; }
+        public string? Texto { get; set; }
         public DateTime? PostadoEm { get; set; }
         #endregion Propriedades
 
@@ -58,12 +60,12 @@ namespace Projeto.Models
 
         public static Post? BuscarPorId(int id)
         {
-            return ITabela<Post>.buscarPorId(id);
+            return tabela.buscarPorId(id);
         }
 
         public static List<Post?>? BuscarTodos()
         {
-            return ITabela<Post>.buscarTodos();
+            return tabela.buscarTodos();
         }
 
         public int? Postar(Usuario UsuarioLogado)
@@ -92,7 +94,7 @@ namespace Projeto.Models
 
                 string comando = string.Concat("SELECT postar(@titulo, @texto, @postado_por)");
 
-                int? resultado = conexao.ExecutarUnico(comando, parametros, true, Conexao.ExtrairInt32);
+                int? resultado = tabela.conexao.ExecutarUnico<int>(comando, parametros, true);
                 return resultado;
             }
 

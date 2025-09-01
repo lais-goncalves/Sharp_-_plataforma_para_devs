@@ -1,13 +1,12 @@
 ﻿using Newtonsoft.Json;
-using Projeto.Models;
 using Microsoft.AspNetCore.Http;
 
-namespace Projeto.Config
+namespace Projeto.Models.Session
 {
     public class Sessao(HttpContext httpContext, string nome)
     {
-        public HttpContext HttpContext { get; set; } = httpContext;
-        public string Nome { get; set; } = nome;
+        private HttpContext HttpContext { get; set; } = httpContext;
+        protected string Nome { get; set; } = nome;
 
         public void DefinirValor(object? value)
         {

@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Projeto.Config;
-using Projeto.Models;
+using Projeto.Models.Paginas;
+using Projeto.Models.Paginas.Controllers;
+using Projeto.Models.Posts;
 
 namespace Projeto.Controllers.Api
 {
-    [Route("api/[controller]/[action]")]
+    [Route("[controller]/[action]")]
     public class PostController : ControllerComSession
     {
         [HttpGet]

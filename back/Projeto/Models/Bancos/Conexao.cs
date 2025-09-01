@@ -1,15 +1,18 @@
 ﻿using System.Data;
+using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace Projeto.Dados
+namespace Projeto.Models.Bancos
 {
     public class Conexao
     {
         #region Propriedades
-        private static readonly string connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DEFAULT_CONNECTION"].ConnectionString;
+        private readonly string connectionString = buscarConnectionString();
         public static readonly Conexao instancia = new Conexao();
         #endregion Propriedades
+
 
         #region Construtores
         private Conexao() { }
@@ -17,7 +20,12 @@ namespace Projeto.Dados
 
 
         #region Métodos
-        public delegate T? ExtrairDados<T>(NpgsqlDataReader reader);
+        #region Utils
+        private static string buscarConnectionString()
+        {
+            return System.Configuration.ConfigurationManager.ConnectionStrings["DEFAULT_CONNECTION"].ConnectionString;
+        }
+
         private void criarListaDeParametros(NpgsqlCommand cmd, List<NpgsqlParameter>? parametros)
         {
             if (parametros is null)
@@ -39,6 +47,20 @@ namespace Projeto.Dados
             cmd?.Connection?.Close();
         }
 
+        public T? dataReaderParaJson<T>(NpgsqlDataReader dataReader)
+        {
+            DataTable dataTable = new();
+            dataTable.Load(dataReader);
+
+            var objSerializadoParaJson = JsonConvert.SerializeObject(dataTable);
+            T? objDesserializado = JsonConvert.DeserializeObject<T>(objSerializadoParaJson);
+
+            return objDesserializado;
+        }
+        #endregion Utils
+
+
+        #region Procedures
         private string? _executarProcedure(string procedure, List<NpgsqlParameter>? parametros, bool temOutput, NpgsqlDbType tipoOutput)
         {
             NpgsqlConnection? conn = null;
@@ -88,7 +110,24 @@ namespace Projeto.Dados
             return resultado;
         }
 
-        private List<T?>? _executarComando<T>(string comando, List<NpgsqlParameter>? parametros, bool buscarUnico, bool retornarRetornoAPIs, ExtrairDados<T>? extrairObjetoDoReader)
+        public string? ExecutarProcedure(string comando, List<NpgsqlParameter>? parametros = null, bool temOutput = true, NpgsqlDbType tipoOutput = NpgsqlDbType.Varchar)
+        {
+            try
+            {
+                return _executarProcedure(comando, parametros, temOutput, tipoOutput);
+            }
+
+            catch (Exception err)
+            {
+                Console.WriteLine(err.Message);
+                return null;
+            }
+        }
+        #endregion Procedures
+
+
+        #region Comandos
+        private List<T?>? _executarComando<T>(string comando, List<NpgsqlParameter>? parametros, bool buscarUnico, bool retornarRetornoAPIs)
         {
             NpgsqlConnection? conn = null;
             NpgsqlCommand? cmd = null;
@@ -97,11 +136,6 @@ namespace Projeto.Dados
 
             try
             {
-                if (retornarRetornoAPIs && extrairObjetoDoReader == null)
-                {
-                    throw new Exception("Para retornar resultados, é necessário definir um método de extração.");
-                }
-
                 using (NpgsqlDataSource dataSource = NpgsqlDataSource.Create(connectionString))
                 {
                     conn = dataSource.OpenConnection();
@@ -109,26 +143,12 @@ namespace Projeto.Dados
                     cmd.CommandText = comando;
 
                     criarListaDeParametros(cmd, parametros);
-                    resultado = [];
 
                     reader = cmd.ExecuteReader();
 
                     if (retornarRetornoAPIs)
                     {
-                        while (reader != null && reader.Read())
-                        {
-                            T? objExtraido = extrairObjetoDoReader(reader);
-
-                            if (objExtraido != null)
-                            {
-                                resultado.Add(objExtraido);
-
-                                if (buscarUnico)
-                                {
-                                    reader = null;
-                                }
-                            }
-                        }
+                        resultado = dataReaderParaJson<List<T?>>(reader);
                     }
 
                     reader?.Close();
@@ -149,11 +169,11 @@ namespace Projeto.Dados
             return resultado;
         }
 
-        public string? ExecutarProcedure(string comando, List<NpgsqlParameter>? parametros = null, bool temOutput = true, NpgsqlDbType tipoOutput = NpgsqlDbType.Varchar)
+        public List<T?>? Executar<T>(string comando, List<NpgsqlParameter>? parametros = null, bool retornarRetornoAPIs = false)
         {
             try
             {
-                return _executarProcedure(comando, parametros, temOutput, tipoOutput);
+                return _executarComando<T>(comando, parametros, false, retornarRetornoAPIs);
             }
 
             catch (Exception err)
@@ -163,25 +183,12 @@ namespace Projeto.Dados
             }
         }
 
-        public List<T?>? Executar<T>(string comando, List<NpgsqlParameter>? parametros = null, bool retornarRetornoAPIs = false, ExtrairDados<T>? extrairObjetoDoReader = null)
+        public T? ExecutarUnico<T>(string comando, List<NpgsqlParameter>? parametros = null, bool retornarRetornoAPIs = false)
         {
             try
             {
-                return _executarComando(comando, parametros, false, retornarRetornoAPIs, extrairObjetoDoReader);
-            }
-
-            catch (Exception err)
-            {
-                Console.WriteLine(err.Message);
-                return null;
-            }
-        }
-
-        public T? ExecutarUnico<T>(string comando, List<NpgsqlParameter>? parametros = null, bool retornarRetornoAPIs = false, ExtrairDados<T>? extrairObjetoDoReader = null)
-        {
-            try
-            {
-                List<T?>? resultado = _executarComando(comando, parametros, true, retornarRetornoAPIs, extrairObjetoDoReader);
+                // Explicitly specify the type argument for _executarComando<T>
+                List<T?>? resultado = _executarComando<T>(comando, parametros, true, retornarRetornoAPIs);
 
                 if (resultado != null && resultado?.Count > 0)
                 {
@@ -197,16 +204,7 @@ namespace Projeto.Dados
                 return default;
             }
         }
-
-        public static string? ExtrairString(NpgsqlDataReader reader)
-        {
-            return reader.GetString(0);
-        }
-
-        public static int? ExtrairInt32(NpgsqlDataReader reader)
-        {
-            return reader.GetInt32(0);
-        }
+        #endregion Comandos
         #endregion Métodos
     }
 }

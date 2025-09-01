@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Npgsql;
 using NuGet.Common;
-using Projeto.Dados;
+using Projeto.Models.Bancos;
 
-namespace Projeto.Models.Perfil
+namespace Projeto.Models.Usuarios.Contas
 {
-    public class PerfilGitHub : IPerfil
+    public class ContaGitHub : IConta
     {
         [JsonIgnore]
         public int IdPerfilSharp { get; }
@@ -22,11 +22,11 @@ namespace Projeto.Models.Perfil
         private static string? CLIENT_ID = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_ID"];
         private static string? CLIENT_SECRET = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_SECRET"];
 
-        public PerfilGitHub(int? idPerfilSharp)
+        public ContaGitHub(int? idPerfilSharp)
         {
             if (idPerfilSharp != null)
             {
-                IdPerfilSharp = (int) idPerfilSharp;
+                IdPerfilSharp = (int)idPerfilSharp;
                 BuscarTodasAsInfomacoes();
             }
         }
@@ -73,10 +73,10 @@ namespace Projeto.Models.Perfil
                 // TODO: arrumar -> login é efetuado e isso aqui roda duas vezes
                 NpgsqlParameter paramId = new NpgsqlParameter("@id", IdPerfilSharp);
                 paramId.DbType = System.Data.DbType.Int32;
-                string comando = string.Concat("SELECT id_github FROM ", Usuario.nomeDaTabela, " WHERE id = @id");
+                string comando = string.Concat("SELECT id_github FROM ", Usuario.tabela.NomeTabela, " WHERE id = @id");
 
                 Conexao conexao = Conexao.instancia;
-                Id = conexao.ExecutarUnico(comando, [paramId], true, Conexao.ExtrairString);
+                Id = conexao.ExecutarUnico<string>(comando, [paramId], true);
             }
 
             catch (Exception err)
@@ -91,10 +91,10 @@ namespace Projeto.Models.Perfil
             {
                 NpgsqlParameter paramId = new NpgsqlParameter("@id", IdPerfilSharp);
                 NpgsqlParameter paramIdGitHub = new NpgsqlParameter("@id_github", id);
-                string comando = string.Concat("UPDATE ", Usuario.nomeDaTabela, " SET id_github = @id_github WHERE id = @id");
+                string comando = string.Concat("UPDATE ", Usuario.tabela.NomeTabela, " SET id_github = @id_github WHERE id = @id");
 
                 Conexao conexao = Conexao.instancia;
-                conexao.ExecutarUnico<string>(comando, [paramId, paramIdGitHub], false, default);
+                conexao.ExecutarUnico<string>(comando, [paramId, paramIdGitHub], false);
 
                 return true;
             }
@@ -169,30 +169,30 @@ namespace Projeto.Models.Perfil
                 HttpClient clienteHttp = new();
                 HttpRequestMessage getInfoUsuario = new(HttpMethod.Get, "https://api.github.com/user");
 
-                    getInfoUsuario.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenDeAcesso);
-                    getInfoUsuario.Headers.Add("Accept", "application/json");
-                    getInfoUsuario.Headers.UserAgent.ParseAdd("Sharp");
+                getInfoUsuario.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenDeAcesso);
+                getInfoUsuario.Headers.Add("Accept", "application/json");
+                getInfoUsuario.Headers.UserAgent.ParseAdd("Sharp");
 
-                    var retornoInfoUsuario = clienteHttp.Send(getInfoUsuario);
-                    if (!retornoInfoUsuario.IsSuccessStatusCode)
-                    {
-                        throw new Exception("Login mal sucedido. Tente novamente.");
-                    }
+                var retornoInfoUsuario = clienteHttp.Send(getInfoUsuario);
+                if (!retornoInfoUsuario.IsSuccessStatusCode)
+                {
+                    throw new Exception("Login mal sucedido. Tente novamente.");
+                }
 
-                    // verificar se usuário já está conectado ao GitHub
-                    string? infoGitHubUsuario = retornoInfoUsuario.Content.ReadAsStringAsync().Result;
-                    if (infoGitHubUsuario == null)
-                    {
-                        throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
-                    }
+                // verificar se usuário já está conectado ao GitHub
+                string? infoGitHubUsuario = retornoInfoUsuario.Content.ReadAsStringAsync().Result;
+                if (infoGitHubUsuario == null)
+                {
+                    throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
+                }
 
-                    dynamic? objInfoGitHubUsuario = JsonConvert.DeserializeObject(infoGitHubUsuario);
-                    string? idInfoGitHub = objInfoGitHubUsuario?.id;
+                dynamic? objInfoGitHubUsuario = JsonConvert.DeserializeObject(infoGitHubUsuario);
+                string? idInfoGitHub = objInfoGitHubUsuario?.id;
 
-                    return idInfoGitHub;
+                return idInfoGitHub;
             }
 
-            catch(Exception err)
+            catch (Exception err)
             {
                 Console.WriteLine(err.Message);
                 return null;

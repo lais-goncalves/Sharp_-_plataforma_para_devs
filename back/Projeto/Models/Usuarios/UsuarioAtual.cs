@@ -1,16 +1,17 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Npgsql;
 using Projeto.Dados;
-using Projeto.Models;
+using Projeto.Models.Session;
 
-namespace Projeto.Config
+namespace Projeto.Models.Usuarios
 {
     public class UsuarioAtual
     {
         private string nomeSession { get; set; } = "UsuarioLogado";
         private Sessao sessao { get; set; }
-        public Usuario? Usuario { 
-            get => sessao.BuscarValor<Usuario>(nomeSession); 
+        public Usuario? Usuario
+        {
+            get => sessao.BuscarValor<Usuario>(nomeSession);
             set => sessao.DefinirValor(value);
         }
 
@@ -31,9 +32,9 @@ namespace Projeto.Config
             {
                 NpgsqlParameter paramApelido = new NpgsqlParameter("@emailOuApelido", emailOuApelido);
                 NpgsqlParameter paramSenha = new NpgsqlParameter("@senha", senha);
-                string comando = string.Concat("SELECT * FROM ", Usuario.nomeDaTabela, " WHERE apelido = @emailOuApelido OR email = @emailOuApelido AND senha = @senha");
+                string comando = string.Concat("SELECT * FROM ", Usuario.tabela.NomeTabela, " WHERE apelido = @emailOuApelido OR email = @emailOuApelido AND senha = @senha");
 
-                Usuario? usuario = Usuario.conexao.ExecutarUnico(comando, [paramApelido, paramSenha], true, Usuario.extrairObjetoDoReader);
+                Usuario? usuario = Usuario.tabela.conexao.ExecutarUnico<Usuario>(comando, [paramApelido, paramSenha], true);
 
                 return usuario;
             }

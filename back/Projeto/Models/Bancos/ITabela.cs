@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Npgsql;
+using Projeto.Models.Bancos;
 
 namespace Projeto.Dados
 {
@@ -9,8 +10,6 @@ namespace Projeto.Dados
         public abstract static string nomeDaTabela { get; set; }
 
 
-        public static abstract T? extrairObjetoDoReader(NpgsqlDataReader reader);
-
         public static T? buscarPorId(int id)
         {
             try
@@ -19,7 +18,7 @@ namespace Projeto.Dados
                 paramId.DbType = System.Data.DbType.Int32;
                 string query = string.Concat("SELECT * FROM ", T.nomeDaTabela, " WHERE id = @id");
 
-                T? post = T.conexao.ExecutarUnico(query, [paramId], true, T.extrairObjetoDoReader);
+                T? post = T.conexao.ExecutarUnico<T>(query, [paramId], true);
 
                 return post;
             }
@@ -51,7 +50,7 @@ namespace Projeto.Dados
             try
             {
                 string query = string.Concat("SELECT * FROM ", T.nomeDaTabela);
-                var resultado = T.conexao.Executar<T>(query, null, true, T.extrairObjetoDoReader);
+                var resultado = T.conexao.Executar<T>(query, null, true);
 
                 return resultado;
             }
