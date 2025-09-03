@@ -1,5 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-using Projeto.Dados;
 
 namespace Projeto.Models.Usuarios.Contas
 {

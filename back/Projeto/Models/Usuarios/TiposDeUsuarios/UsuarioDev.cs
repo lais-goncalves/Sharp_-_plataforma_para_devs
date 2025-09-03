@@ -1,40 +1,32 @@
 ﻿using Newtonsoft.Json;
+using Projeto.Models.Bancos.Tabelas;
 using Projeto.Models.Usuarios.Contas;
+using Projeto.Models.Usuarios.Perfis;
+using Projeto.Models.Usuarios.Perfis.TiposDePerfis;
 
 namespace Projeto.Models.Usuarios.TiposDeUsuarios
 {
-    public class UsuarioDev : Usuario
+    public class UsuarioDev : UsuarioLogavel
     {
-        private int? _id;
-
-        [JsonIgnore]
-        public int? Id
-        {
-            get => _id;
-            set
-            {
-                _id = value;
-                DefinirPerfis();
-            }
-        }
-
-        [JsonIgnore]
-        public ContaGitHub PerfilGitHub { get; set; }
+        public override IPerfil Perfil { get; set; } = new PerfilDev();
 
         public UsuarioDev(int id, string? nomeCompleto, string? email, string? apelido, string? senha)
-            : base(id, nomeCompleto, email, apelido, senha)
         {
-            DefinirPerfis();
+            Id = id;
+            NomeCompleto = nomeCompleto;
+            Email = email;
+            Apelido = apelido;
+            Senha = senha;
         }
 
-        public UsuarioDev() : base()
+        public override bool Logar()
         {
-            DefinirPerfis();
+            throw new NotImplementedException();
         }
 
-        public void DefinirPerfis()
+        public override bool Registrar()
         {
-            PerfilGitHub = new ContaGitHub(Id);
+            throw new NotImplementedException();
         }
     }
 }

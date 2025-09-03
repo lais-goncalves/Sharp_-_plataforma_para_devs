@@ -2,16 +2,14 @@
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using Npgsql;
-using Projeto.Dados;
-using Projeto.Models.Bancos;
 using Projeto.Models.Usuarios;
 
-namespace Projeto.Models
+namespace Projeto.Models.Posts
 {
     public class Post
     {
         #region Propriedades
-        static TabelaBanco<Post> tabela = ConfigBanco.BuscarTabela<Post>("Post");
+        static TabelaBanco<Post> tabela = ListaTabelas.BuscarTabela<Post>("Post");
 
         [JsonIgnore]
         public int? Id { get; set; }
@@ -60,12 +58,12 @@ namespace Projeto.Models
 
         public static Post? BuscarPorId(int id)
         {
-            return tabela.buscarPorId(id);
+            return tabela.BuscarPorId(id);
         }
 
         public static List<Post?>? BuscarTodos()
         {
-            return tabela.buscarTodos();
+            return tabela.BuscarTodos();
         }
 
         public int? Postar(Usuario UsuarioLogado)
@@ -98,7 +96,7 @@ namespace Projeto.Models
                 return resultado;
             }
 
-            catch(Exception err)
+            catch (Exception err)
             {
                 Console.WriteLine(err.Message);
                 return null;

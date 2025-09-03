@@ -12,16 +12,21 @@ namespace Projeto.Models.Usuarios.Contas
 {
     public class ContaGitHub : IConta
     {
+        #region Propriedades
         [JsonIgnore]
         public int IdPerfilSharp { get; }
         [JsonIgnore]
         public string? Id { get; protected set; }
+
         public string? Apelido { get; }
 
         protected static string? urlSite = "https://api.github.com";
-        private static string? CLIENT_ID = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_ID"];
-        private static string? CLIENT_SECRET = System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_SECRET"];
+        private static string? CLIENT_ID = buscarClientId();
+        private static string? CLIENT_SECRET = buscarClientSecret();
+        #endregion Propriedades
 
+
+        #region Construtores
         public ContaGitHub(int? idPerfilSharp)
         {
             if (idPerfilSharp != null)
@@ -30,6 +35,22 @@ namespace Projeto.Models.Usuarios.Contas
                 BuscarTodasAsInfomacoes();
             }
         }
+        #endregion Construtores
+
+
+        #region Métodos
+        #region Utils
+        private static string? buscarClientId()
+        {
+            return System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_ID"];
+        }
+
+        private static string? buscarClientSecret()
+        {
+            return System.Configuration.ConfigurationManager.AppSettings["GITHUB_CLIENT_SECRET"];
+        }
+        #endregion Utils
+
 
         private void BuscarTodasAsInfomacoes()
         {
@@ -73,7 +94,7 @@ namespace Projeto.Models.Usuarios.Contas
                 // TODO: arrumar -> login é efetuado e isso aqui roda duas vezes
                 NpgsqlParameter paramId = new NpgsqlParameter("@id", IdPerfilSharp);
                 paramId.DbType = System.Data.DbType.Int32;
-                string comando = string.Concat("SELECT id_github FROM ", Usuario.tabela.NomeTabela, " WHERE id = @id");
+                string comando = string.Concat("SELECT id_github FROM ", Usuario.Tabela.NomeTabela, " WHERE id = @id");
 
                 Conexao conexao = Conexao.instancia;
                 Id = conexao.ExecutarUnico<string>(comando, [paramId], true);
@@ -91,7 +112,7 @@ namespace Projeto.Models.Usuarios.Contas
             {
                 NpgsqlParameter paramId = new NpgsqlParameter("@id", IdPerfilSharp);
                 NpgsqlParameter paramIdGitHub = new NpgsqlParameter("@id_github", id);
-                string comando = string.Concat("UPDATE ", Usuario.tabela.NomeTabela, " SET id_github = @id_github WHERE id = @id");
+                string comando = string.Concat("UPDATE ", Usuario.Tabela.NomeTabela, " SET id_github = @id_github WHERE id = @id");
 
                 Conexao conexao = Conexao.instancia;
                 conexao.ExecutarUnico<string>(comando, [paramId, paramIdGitHub], false);
@@ -219,5 +240,6 @@ namespace Projeto.Models.Usuarios.Contas
                 return null;
             }
         }
+        #endregion Métodos
     }
 }

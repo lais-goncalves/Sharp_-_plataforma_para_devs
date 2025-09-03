@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Npgsql;
-using Projeto.Dados;
 using Projeto.Models.Session;
 
 namespace Projeto.Models.Usuarios
@@ -32,9 +31,9 @@ namespace Projeto.Models.Usuarios
             {
                 NpgsqlParameter paramApelido = new NpgsqlParameter("@emailOuApelido", emailOuApelido);
                 NpgsqlParameter paramSenha = new NpgsqlParameter("@senha", senha);
-                string comando = string.Concat("SELECT * FROM ", Usuario.tabela.NomeTabela, " WHERE apelido = @emailOuApelido OR email = @emailOuApelido AND senha = @senha");
+                string comando = string.Concat("SELECT * FROM ", Usuario.Tabela.NomeTabela, " WHERE apelido = @emailOuApelido OR email = @emailOuApelido AND senha = @senha");
 
-                Usuario? usuario = Usuario.tabela.conexao.ExecutarUnico<Usuario>(comando, [paramApelido, paramSenha], true);
+                Usuario? usuario = Usuario.Tabela.conexao.ExecutarUnico<Usuario>(comando, [paramApelido, paramSenha], true);
 
                 return usuario;
             }

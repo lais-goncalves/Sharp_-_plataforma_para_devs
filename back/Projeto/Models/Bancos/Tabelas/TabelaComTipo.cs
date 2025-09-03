@@ -1,26 +1,12 @@
 ﻿using Npgsql;
-using Projeto.Models.Usuarios;
 
-namespace Projeto.Models.Bancos
+namespace Projeto.Models.Bancos.Tabelas
 {
-    // Essa interface serve para garantir que a ConfigBanco consiga usar o dictionary com tabelas de diferentes tipos (simplesmente usar TabelaBanco<T> não funcionaria)
-    public interface ITabelaBanco
+    public class TabelaComTipo<T> : Tabela
     {
-        Conexao conexao { get; set; }
-        string NomeTabela { get; set; }
-    }
+        public TabelaComTipo(string nomeTabela) : base(nomeTabela) { }
 
-    public class TabelaBanco<T>(string nomeTabela) : ITabelaBanco where T : class
-    {
-        public Conexao conexao { get; set; } = Conexao.instancia;
-        public string NomeTabela { get; set; } = nomeTabela;
-
-        public void Teste()
-        {
-            conexao.Executar<T>("SELECT * FROM Usuario", null, true);
-        }
-
-        public T? buscarPorId(int id)
+        public T? BuscarPorId(int id)
         {
             try
             {
@@ -28,7 +14,7 @@ namespace Projeto.Models.Bancos
                 paramId.DbType = System.Data.DbType.Int32;
                 string query = string.Concat("SELECT * FROM ", NomeTabela, " WHERE id = @id");
 
-                T? post = conexao.ExecutarUnico<T>(query, [paramId], true);
+                T? post = conexao.ExecutarUnico<T>(query, new List<NpgsqlParameter> { paramId }, true);
 
                 return post;
             }
@@ -40,22 +26,21 @@ namespace Projeto.Models.Bancos
             }
         }
 
-        public T? buscarPorId(string id)
+        public T? BuscarPorId(string id)
         {
             try
             {
                 int idInt = int.Parse(id);
-                return buscarPorId(idInt);
+                return BuscarPorId(idInt);
             }
 
             catch (Exception)
             {
                 return default;
             }
-
         }
 
-        public List<T?>? buscarTodos()
+        public List<T?>? BuscarTodos()
         {
             try
             {

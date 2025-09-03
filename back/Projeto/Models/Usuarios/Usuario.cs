@@ -1,16 +1,15 @@
 ﻿using System.Data;
 using System.Text.Json.Serialization;
 using Microsoft.Data.SqlClient;
+using Projeto.Models.Bancos.Tabelas;
 using Npgsql;
-using Projeto.Dados;
-using Projeto.Models.Bancos;
 
 namespace Projeto.Models.Usuarios
 {
     public class Usuario
     {
         #region Propriedades
-        public static TabelaBanco<Usuario> tabela = ConfigBanco.BuscarTabela<Usuario>("usuario");
+        public static TabelaComTipo<Usuario> Tabela => new ("usuario");
 
         // Propriedades que não são enviadas ao front
         [JsonIgnore]
@@ -45,29 +44,29 @@ namespace Projeto.Models.Usuarios
         public static Usuario? BuscarPorApelido(string apelido)
         {
             NpgsqlParameter paramApelido = new("@apelido", apelido);
-            string comando = string.Concat("SELECT * FROM ", tabela.NomeTabela, " WHERE apelido = @apelido");
+            string comando = string.Concat("SELECT * FROM ", Tabela.NomeTabela, " WHERE apelido = @apelido");
 
-            Usuario? usuario = tabela.conexao.ExecutarUnico<Usuario>(comando, [paramApelido], true);
+            Usuario? usuario = Tabela.conexao.ExecutarUnico<Usuario>(comando, [paramApelido], true);
             return usuario;
         }
 
         public static Usuario? BuscarPorIdGitHub(string idGitHub)
         {
             NpgsqlParameter paramApelido = new("@id_github", idGitHub);
-            string comando = string.Concat("SELECT * FROM ", tabela.NomeTabela, " WHERE id_github = @id_github");
+            string comando = string.Concat("SELECT * FROM ", Tabela.NomeTabela, " WHERE id_github = @id_github");
 
-            Usuario? usuario = tabela.conexao.ExecutarUnico<Usuario>(comando, [paramApelido], true);
+            Usuario? usuario = Tabela.conexao.ExecutarUnico<Usuario>(comando, [paramApelido], true);
             return usuario;
         }
 
         public static Usuario? BuscarPorId(string id)
         {
-            return tabela.buscarPorId(id);
+            return Tabela.BuscarPorId(id);
         }
 
         public static List<Usuario?>? BuscarTodos()
         {
-            return tabela.buscarTodos();
+            return Tabela.BuscarTodos();
         }
         #endregion Métodos
     }
