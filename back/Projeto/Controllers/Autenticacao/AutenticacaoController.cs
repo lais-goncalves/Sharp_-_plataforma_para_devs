@@ -17,7 +17,7 @@ namespace Projeto.Controllers.Autenticacao
 
             try
             {
-                resultado.DefinirDados(UsuarioAtual?.Usuario);
+                resultado.DefinirDados(UsuarioAtual);
                 return Ok(resultado);
             }
 
@@ -67,7 +67,7 @@ namespace Projeto.Controllers.Autenticacao
                     throw new Exception("Usuário e/ou senha incorreto(s).");
                 }
 
-                resultado.DefinirDados(UsuarioAtual.Usuario);
+                resultado.DefinirDados(UsuarioAtual);
                 return Ok(resultado);
             }
 
@@ -171,7 +171,7 @@ namespace Projeto.Controllers.Autenticacao
 
             try
             {
-                UsuarioAtual.Deslogar();
+                UsuarioAtual?.Deslogar();
                 return Ok();
             }
 

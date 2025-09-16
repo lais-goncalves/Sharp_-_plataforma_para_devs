@@ -14,7 +14,7 @@ namespace Projeto.Models.Bancos.Tabelas
                 paramId.DbType = System.Data.DbType.Int32;
                 string query = string.Concat("SELECT * FROM ", NomeTabela, " WHERE id = @id");
 
-                T? post = conexao.ExecutarUnico<T>(query, new List<NpgsqlParameter> { paramId }, true);
+                T? post = conexao.ExecutarUnico<T>(query, new List<NpgsqlParameter> { paramId });
 
                 return post;
             }

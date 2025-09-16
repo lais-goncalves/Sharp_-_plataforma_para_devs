@@ -6,6 +6,6 @@ namespace Projeto.Models.Paginas.Controllers
 {
     public class ControllerComSession : Controller
     {
-        protected UsuarioAtual? UsuarioAtual => new UsuarioAtual(HttpContext);
+        protected UsuarioLogavel UsuarioAtual => new UsuarioLogavel(HttpContext);
     }
 }

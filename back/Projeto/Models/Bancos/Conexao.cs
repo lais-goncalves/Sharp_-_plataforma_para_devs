@@ -127,7 +127,7 @@ namespace Projeto.Models.Bancos
 
 
         #region Comandos
-        private List<T?>? _executarComando<T>(string comando, List<NpgsqlParameter>? parametros, bool buscarUnico, bool retornarRetornoAPIs)
+        private List<T?>? _executarComando<T>(string comando, List<NpgsqlParameter>? parametros)
         {
             NpgsqlConnection? conn = null;
             NpgsqlCommand? cmd = null;
@@ -145,11 +145,7 @@ namespace Projeto.Models.Bancos
                     criarListaDeParametros(cmd, parametros);
 
                     reader = cmd.ExecuteReader();
-
-                    if (retornarRetornoAPIs)
-                    {
-                        resultado = dataReaderParaJson<List<T?>>(reader);
-                    }
+                    resultado = dataReaderParaJson<List<T?>>(reader);
 
                     reader?.Close();
                 }
@@ -173,7 +169,7 @@ namespace Projeto.Models.Bancos
         {
             try
             {
-                return _executarComando<T>(comando, parametros, false, retornarRetornoAPIs);
+                return _executarComando<T>(comando, parametros);
             }
 
             catch (Exception err)
@@ -183,12 +179,12 @@ namespace Projeto.Models.Bancos
             }
         }
 
-        public T? ExecutarUnico<T>(string comando, List<NpgsqlParameter>? parametros = null, bool retornarRetornoAPIs = false)
+        public T? ExecutarUnico<T>(string comando, List<NpgsqlParameter>? parametros = null)
         {
             try
             {
                 // Explicitly specify the type argument for _executarComando<T>
-                List<T?>? resultado = _executarComando<T>(comando, parametros, true, retornarRetornoAPIs);
+                List<T?>? resultado = _executarComando<T>(comando, parametros);
 
                 if (resultado != null && resultado?.Count > 0)
                 {

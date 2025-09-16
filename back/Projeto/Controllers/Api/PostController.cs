@@ -60,7 +60,7 @@ namespace Projeto.Controllers.Api
                     throw new Exception("Você deve estar logado para poder postar.");
                 }
 
-                int? idRetornoAPI = Post.Postar(titulo, texto, UsuarioAtual.Usuario);
+                int? idRetornoAPI = Post.Postar(titulo, texto, UsuarioAtual);
                 if (idRetornoAPI == null)
                 {
                     throw new Exception("Não foi possível postar. Tente Novamente.");

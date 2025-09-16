@@ -13,6 +13,12 @@ namespace Projeto.Models.Session
             HttpContext.Session.SetString(Nome, JsonConvert.SerializeObject(value));
         }
 
+        public T? BuscarValor<T>()
+        {
+            var value = HttpContext.Session.GetString(Nome);
+            return value == null ? default : JsonConvert.DeserializeObject<T>(value);
+        }
+
         public T? BuscarValor<T>(string key)
         {
             var value = HttpContext.Session.GetString(key);

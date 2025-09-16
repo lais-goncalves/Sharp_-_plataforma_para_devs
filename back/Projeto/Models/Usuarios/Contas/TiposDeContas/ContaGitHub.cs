@@ -5,36 +5,25 @@ using Azure;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Npgsql;
-using NuGet.Common;
 using Projeto.Models.Bancos;
+using Projeto.Models.Paginas;
+using Projeto.Models.Usuarios.Perfis.TiposDePerfis;
 
-namespace Projeto.Models.Usuarios.Contas
+namespace Projeto.Models.Usuarios.Contas.TiposDeContas
 {
-    public class ContaGitHub : IConta
+    public class ContaGitHub : Conta
     {
         #region Propriedades
-        [JsonIgnore]
-        public int IdPerfilSharp { get; }
-        [JsonIgnore]
-        public string? Id { get; protected set; }
-
-        public string? Apelido { get; }
-
         protected static string? urlSite = "https://api.github.com";
         private static string? CLIENT_ID = buscarClientId();
         private static string? CLIENT_SECRET = buscarClientSecret();
+
+        protected override string ColunaIdBanco { get; set; } = "id_github";
         #endregion Propriedades
 
 
         #region Construtores
-        public ContaGitHub(int? idPerfilSharp)
-        {
-            if (idPerfilSharp != null)
-            {
-                IdPerfilSharp = (int)idPerfilSharp;
-                BuscarTodasAsInfomacoes();
-            }
-        }
+        public ContaGitHub(UsuarioLogavel UsuarioLogavel) : base(UsuarioLogavel) { }
         #endregion Construtores
 
 
@@ -51,14 +40,7 @@ namespace Projeto.Models.Usuarios.Contas
         }
         #endregion Utils
 
-
-        private void BuscarTodasAsInfomacoes()
-        {
-            BuscarInfoDoBanco();
-            BuscarInfoDaFonte();
-        }
-
-        public void BuscarInfoDaFonte()
+        public override void BuscarInformacoesDaFonte()
         {
             try
             {
@@ -87,17 +69,17 @@ namespace Projeto.Models.Usuarios.Contas
             }
         }
 
-        public void BuscarInfoDoBanco()
+        public override void BuscarInformacoesDoBanco()
         {
             try
             {
                 // TODO: arrumar -> login é efetuado e isso aqui roda duas vezes
-                NpgsqlParameter paramId = new NpgsqlParameter("@id", IdPerfilSharp);
+                NpgsqlParameter paramId = new NpgsqlParameter("@id", UsuarioLogavel?.Id);
                 paramId.DbType = System.Data.DbType.Int32;
                 string comando = string.Concat("SELECT id_github FROM ", Usuario.Tabela.NomeTabela, " WHERE id = @id");
 
                 Conexao conexao = Conexao.instancia;
-                Id = conexao.ExecutarUnico<string>(comando, [paramId], true);
+                Id = conexao.ExecutarUnico<string>(comando, [paramId]);
             }
 
             catch (Exception err)
@@ -110,12 +92,12 @@ namespace Projeto.Models.Usuarios.Contas
         {
             try
             {
-                NpgsqlParameter paramId = new NpgsqlParameter("@id", IdPerfilSharp);
+                NpgsqlParameter paramId = new NpgsqlParameter("@id", UsuarioLogavel?.Id);
                 NpgsqlParameter paramIdGitHub = new NpgsqlParameter("@id_github", id);
                 string comando = string.Concat("UPDATE ", Usuario.Tabela.NomeTabela, " SET id_github = @id_github WHERE id = @id");
 
                 Conexao conexao = Conexao.instancia;
-                conexao.ExecutarUnico<string>(comando, [paramId, paramIdGitHub], false);
+                conexao.ExecutarUnico<string>(comando, [paramId, paramIdGitHub]);
 
                 return true;
             }
@@ -220,7 +202,7 @@ namespace Projeto.Models.Usuarios.Contas
             }
         }
 
-        public static async Task<string?> BuscarIdELogar(string codigoDoUsuario)
+        public static async Task<string?> BuscarTokenEId(string codigoDoUsuario)
         {
             try
             {
@@ -230,8 +212,8 @@ namespace Projeto.Models.Usuarios.Contas
                     throw new Exception("Login mal sucedido. Tente novamente.");
                 }
 
-                string? idInfoGitHub = BuscarIdDaFonte(tokenDeAcesso);
-                return idInfoGitHub;
+                string? idGitHub = BuscarIdDaFonte(tokenDeAcesso);
+                return idGitHub;
             }
 
             catch (Exception err)
@@ -239,6 +221,77 @@ namespace Projeto.Models.Usuarios.Contas
                 Console.WriteLine(err);
                 return null;
             }
+        }
+
+        public void LogarUsuarioUsandoId(string idGitHub)
+        {
+            Usuario? usuarioAutenticado = PerfilDev.BuscarPorIdGitHub(idGitHub);
+            if (usuarioAutenticado == null)
+            {
+                throw new Exception("Para logar-se com o GitHub, é necessário criar uma conta primeiro.");
+            }
+
+            UsuarioLogavel.Logar(usuarioAutenticado?.Email, usuarioAutenticado?.Senha);
+            if (!UsuarioLogavel.EstaLogado())
+            {
+                throw new Exception("Houve um problema ao tentar logar. Tente novamente.");
+            }
+        }
+
+        public async Task<RetornoAPI<UsuarioLogavel?>> RetornoLoginGitHub(string codigo)
+        {
+            RetornoAPI<UsuarioLogavel?> resultado = new RetornoAPI<UsuarioLogavel?>();
+
+            // TODO: separar método em partes menores
+            try
+            {
+                // TODO: criar verificação se usuário é dev
+
+                string? idGitHub = await BuscarTokenEId(codigo);
+                if (idGitHub == null)
+                {
+                    throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
+                }
+
+                if (!UsuarioLogavel.EstaLogado())
+                {
+                    LogarUsuarioUsandoId(idGitHub);
+                }
+
+                // se usuário já estiver logado
+                else
+                {
+                    // TODO: mandar essa autenticação pro PerfilDev
+                    PerfilDev perfilUsuario = (PerfilDev) UsuarioLogavel.Perfil;
+                    ContaGitHub contaGitUsuario = (ContaGitHub) perfilUsuario.ContasDoUsuario["github"];
+
+                    string? idGitHubUsuario = contaGitUsuario.Id;
+                    if (idGitHubUsuario == null)
+                    {
+                        // definir ID do github no banco caso não esteja definido
+                        bool idFoiDefinido = contaGitUsuario.CadastrarId(idGitHub);
+                        if (!idFoiDefinido)
+                        {
+                            throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
+                        }
+                    }
+
+                    // caso já esteja definido, mas o ID buscado é diferente do banco
+                    else if (idGitHubUsuario != idGitHub)
+                    {
+                        throw new Exception("Já existe um usuário logado nesta conta. Tente usar outra.");
+                    }
+                }
+
+                resultado.DefinirDados(UsuarioLogavel);
+            }
+
+            catch (Exception err)
+            {
+                resultado.DefinirErro(err);
+            }
+
+            return resultado;
         }
         #endregion Métodos
     }

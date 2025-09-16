@@ -3,13 +3,14 @@ using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using Npgsql;
 using Projeto.Models.Usuarios;
+using Projeto.Models.Bancos.Tabelas;
 
 namespace Projeto.Models.Posts
 {
     public class Post
     {
         #region Propriedades
-        static TabelaBanco<Post> tabela = ListaTabelas.BuscarTabela<Post>("Post");
+        static TabelaComTipo<Post> tabela = new TabelaComTipo<Post>("Post");
 
         [JsonIgnore]
         public int? Id { get; set; }
@@ -92,7 +93,7 @@ namespace Projeto.Models.Posts
 
                 string comando = string.Concat("SELECT postar(@titulo, @texto, @postado_por)");
 
-                int? resultado = tabela.conexao.ExecutarUnico<int>(comando, parametros, true);
+                int? resultado = tabela.conexao.ExecutarUnico<int>(comando, parametros);
                 return resultado;
             }
 
