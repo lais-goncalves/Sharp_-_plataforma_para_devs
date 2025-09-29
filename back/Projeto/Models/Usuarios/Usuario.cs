@@ -65,11 +65,17 @@ namespace Projeto.Models.Usuarios
 
         public static Usuario? BuscarPorId(string id)
         {
-            NpgsqlParameter paramId = new NpgsqlParameter("@param_id", id);
-            string function = string.Concat("buscar_usuario");
+            bool podeConverter = int.TryParse(id, null, out int idInt);
+            if (podeConverter)
+            {
+                NpgsqlParameter paramId = new NpgsqlParameter("@param_id", idInt);
+                string function = string.Concat("buscar_usuario");
+                Usuario? resultado = Tabela.ExecutarFunctionUnica<Usuario>(function, [paramId]);
 
-            Usuario? resultado = Tabela.ExecutarFunctionUnica<Usuario>(function, [paramId]);
-            return resultado;
+                return resultado;
+            }
+
+            return null;
         }
 
         public static List<Usuario?>? BuscarTodos()

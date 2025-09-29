@@ -1,70 +1,75 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Specialized;
+using System.Web;
+using Microsoft.AspNetCore.Mvc;
 using Projeto.Models.Paginas;
 using Projeto.Models.Paginas.Controllers;
 using Projeto.Models.Usuarios;
+using Projeto.Models.Usuarios.Contas.TiposDeContas;
+using Projeto.Models.Usuarios.Perfis.TiposDePerfis;
 
 namespace Projeto.Controllers.Autenticacao.AutenticacoesDev
 {
     [Route("[controller]/[action]")]
     public class AutenticacaoGitHubController : ControllerComSession
     {
-        [HttpGet]
-        public ActionResult BuscarUsuarioLogado()
-        {
-            RetornoAPI<Usuario?> resultado = new RetornoAPI<Usuario?>();
+        ContaGitHub? ContaGitHub => (ContaGitHub)UsuarioAtual.Perfil.ContasDoUsuario["github"];
 
-            try
-            {
-                resultado.DefinirDados(UsuarioAtual);
-                return Ok(resultado);
+        [HttpGet]
+        public async Task<ActionResult> RetornoLoginGitHub(string code)
+        {
+            RetornoAPI<UsuarioLogavel?> resultado;
+
+            try {
+                // se perfil disponibilizar conta GitHub
+                if (ContaGitHub is not null)
+                {
+                    resultado = await ContaGitHub.RetornoLoginGitHub(code);
+                    return Ok(resultado);
+                }
+
+                // senão
+                throw new Exception("");
             }
 
             catch (Exception err)
             {
+                resultado = new RetornoAPI<UsuarioLogavel?>();
                 resultado.DefinirErro(err);
-                return Unauthorized(resultado);
+
+                return BadRequest(resultado);
             }
         }
 
-        [HttpPost]
-        public ActionResult Registrar(string apelido, string senha)
-        {
-            // TODO: ESCAPAR CARACTERES DO APELIDO E DA SENHA
-
-            //try
-            //{
-            //    RetornoAPI<bool> registroEfetuado = Usuario.Registrar(apelido, senha);
-
-            //    if (registroEfetuado.Erro != null)
-            //    {
-            //        throw registroEfetuado.Erro;
-            //    }
-
-            //    return Ok(registroEfetuado.Item);
-            //}
-
-            //catch(Exception err)
-            //{
-            //    return BadRequest(err.Message);
-            //}
-
-            throw new NotImplementedException();
-        }
-
         [HttpGet]
-        public ActionResult Logar()
+        public void LogarComGitHub()
         {
-            //if (UsuarioAtual?.Perfil.NomePerfil != "dev")
-            //{
-            //    return BadRequest(); // TODO: arrumar
-            //}
+            try
+            {
+                if (UsuarioAtual.EstaLogado())
+                {
+                    // caso o usuário já tenha conta e já esteja logado...
+                    string? idGitHub = ContaGitHub?.IdLogin;
+                    if (idGitHub != null)
+                    {
+                        return; 
+                    }
+                }
 
-            //PerfilDev perfilUsuario = (PerfilDev) UsuarioAtual.Perfil;
-            //ContaGitHub conta = (ContaGitHub) perfilUsuario.ContasDoUsuario["github"];
+                // a partir desse ponto, caso o usuário não tenha entrado com o GitHub ainda, cadastrar
+                if (ContaGitHub.CLIENT_ID == null || ContaGitHub.CLIENT_SECRET == null)
+                {
+                    throw new Exception("Configuração de API incorreta.");
+                }
 
-            //string idGitHub = ContaGitHub.BuscarTokenEID();
+                // redirecionar para API do GitHub para que possa ser cadastrado
+                string urlLogin = ContaGitHub.BuscarURLLogin();
+                Response.Redirect(urlLogin);
+            }
 
-            return default;
+            catch (Exception err) 
+            {
+                Console.WriteLine(err.Message);
+            }
         }
     }
 }

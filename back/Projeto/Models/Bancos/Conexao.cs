@@ -57,11 +57,17 @@ namespace Projeto.Models.Bancos
 
             return objDesserializado;
         }
+
+        public static T? BuscarPropriedadeDynamic<T>(dynamic? objDynamic, string nomePropriedadeBuscada)
+        {
+            T? prop = objDynamic?[nomePropriedadeBuscada];
+            return prop;
+        }
         #endregion Utils
 
 
         #region Procedures
-        private string? _executarProcedure(string procedure, List<NpgsqlParameter>? parametros, bool temOutput, NpgsqlDbType tipoOutput)
+        private string? _executarProcedure(string procedure, List<NpgsqlParameter>? parametros)
         {
             NpgsqlConnection? conn = null;
             NpgsqlCommand? cmd = null;
@@ -76,23 +82,8 @@ namespace Projeto.Models.Bancos
                     cmd.CommandText = procedure;
 
                     criarListaDeParametros(cmd, parametros);
-                    NpgsqlParameter? parametroOutput;
-
-                    if (temOutput)
-                    {
-                        parametroOutput = new NpgsqlParameter("@retorno", "");
-                        parametroOutput.NpgsqlDbType = tipoOutput;
-                        parametroOutput.Direction = ParameterDirection.Output;
-                        cmd.Parameters.Add(parametroOutput);
-                    }
-
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.ExecuteNonQuery();
-
-                    if (temOutput)
-                    {
-                        resultado = cmd.Parameters["@retorno"]?.Value?.ToString();
-                    }
                 }
             }
 
@@ -110,11 +101,11 @@ namespace Projeto.Models.Bancos
             return resultado;
         }
 
-        public string? ExecutarProcedure(string comando, List<NpgsqlParameter>? parametros = null, bool temOutput = true, NpgsqlDbType tipoOutput = NpgsqlDbType.Varchar)
+        public string? ExecutarProcedure(string comando, List<NpgsqlParameter>? parametros = null)
         {
             try
             {
-                return _executarProcedure(comando, parametros, temOutput, tipoOutput);
+                return _executarProcedure(comando, parametros);
             }
 
             catch (Exception err)

@@ -1,39 +1,114 @@
 ﻿using System.Reflection;
 using System.Text.Json.Serialization;
+using Npgsql;
+using Projeto.Models.Bancos;
+using Projeto.Models.Bancos.Tabelas;
 using Projeto.SessionAtual;
 
 namespace Projeto.Models.Usuarios.Contas
 {
     public abstract class Conta
     {
+        #region Propriedades
+        [JsonIgnore]
+        static TabelaComTipo<Conta> Tabela = new TabelaComTipo<Conta>("Tipo_Conta");
+        [JsonIgnore]
+        static TabelaComTipo<Conta> TabelaRelacionamento = new TabelaComTipo<Conta>("Conta_Usuario");
+
         [JsonIgnore]
         protected UsuarioLogavel UsuarioLogavel { get; }
         [JsonIgnore]
-        protected abstract string ColunaIdBanco { get; set; }
-        [JsonIgnore]
-        protected string? Id { get; set; }
-        protected string? Apelido { get; set; }
+        public string? IdLogin { get; protected set; }
+        public abstract string? NomeDaConta { get; protected set; }
+        #endregion Propriedades
 
+
+        #region Construtores
         public Conta(UsuarioLogavel usuarioLogavel)
         {
             UsuarioLogavel = usuarioLogavel;
+            BuscarTodasAsInfomacoes();
         }
+        #endregion Construtores
 
+
+        #region Métodos
         public bool Existe()
         {
-            return !string.IsNullOrEmpty(Id);
+            return !string.IsNullOrEmpty(IdLogin);
+        }
+
+        public Usuario? BuscarUsuarioPorIdDeLogin(string id)
+        {
+           try
+            {
+                NpgsqlParameter paramId = new NpgsqlParameter("@param_id_login_conta", id);
+                NpgsqlParameter paramNomeConta = new NpgsqlParameter("@param_nome_conta", NomeDaConta);
+                string nomeProcedure = "buscar_usuario_por_id_login_conta";
+
+                dynamic? resultadoId = Tabela.ExecutarFunctionUnica<dynamic>(nomeProcedure, [paramId, paramNomeConta]);
+                if (resultadoId == null)
+                {
+                    return null;
+                }
+
+                string idString = Conexao.BuscarPropriedadeDynamic<string>(resultadoId, "id");
+                Usuario? usuarioEncontrado = Usuario.BuscarPorId(idString);
+                return usuarioEncontrado;
+            }
+
+            catch (Exception err)
+            {
+                Console.WriteLine(err);
+                return null;
+            }
+        }
+
+        public virtual bool DefinirIdNoBanco(string id)
+        {
+            try
+            {
+                NpgsqlParameter paramId = new NpgsqlParameter("@param_id_usuario", UsuarioLogavel?.Id);
+                NpgsqlParameter paramNomeConta = new NpgsqlParameter("@param_nome_conta", NomeDaConta);
+                NpgsqlParameter paramIdConta = new NpgsqlParameter("@param_id_login_conta", id);
+
+                string procedure = "inserir_id_login_conta";
+                Tabela.conexao.ExecutarProcedure(procedure, [paramId, paramNomeConta, paramIdConta]);
+
+                BuscarTodasAsInfomacoes();
+                return true;
+            }
+
+            catch (Exception)
+            {
+                Console.WriteLine("Um erro ocorreu ao tentar buscar as informações da Conta. Tente logar novamente.");
+                return false;
+            }
         }
 
         public abstract void BuscarInformacoesDaFonte();
 
-        public abstract void BuscarInformacoesDoBanco();
+        public virtual void BuscarInformacoesDoBanco()
+        {
+            NpgsqlParameter paramIdUsuario = new("@param_id_usuario", UsuarioLogavel.Id);
+            NpgsqlParameter paramNomeConta = new("@param_nome_conta", NomeDaConta);
+
+            string function = "buscar_id_login_conta";
+            dynamic? resultado = TabelaRelacionamento.ExecutarFunctionUnica<dynamic>(function, [paramIdUsuario, paramNomeConta]);
+
+            IdLogin = Conexao.BuscarPropriedadeDynamic<string>(resultado, "id_conta");
+        }
 
         public virtual Conta BuscarTodasAsInfomacoes()
         {
-            BuscarInformacoesDoBanco();
-            BuscarInformacoesDaFonte();
+            if (UsuarioLogavel.EstaLogado())
+            {
+                BuscarInformacoesDoBanco();
+                BuscarInformacoesDaFonte();
+            }
 
             return this;
         }
+        #endregion Métodos
     }
 }
