@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\Projetos\ModeloProjetoBD.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="Projeto.dll.config" />
   </ItemGroup>
 

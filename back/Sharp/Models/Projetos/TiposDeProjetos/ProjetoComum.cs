@@ -4,13 +4,14 @@ using Sharp.Models.ConexoesExternas.TiposDeConexoes;
 using Sharp.Models.Portfolios.Recursos;
 using Sharp.Models.Usuarios;
 
-namespace Sharp.Models.Portfolios.Projetos
+namespace Sharp.Models.Projetos.TiposDeProjetos
 {
-    public class Projeto : BaseProjeto
+    public class ProjetoComum : BaseProjeto
     {
         #region Construtores
-        public Projeto(string Id, string? Nome, string? Descricao, string? Status)
-            : base(Id, Nome, Descricao, null, Status) {}
+        public ProjetoComum(string Id, string? Nome, string? Descricao, string? Status, string? Tipo = null) : base(Id, Nome, Descricao, Tipo, Status) { }
+
+        public ProjetoComum() : base() { }
         #endregion Construtores
 
 

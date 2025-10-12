@@ -2,7 +2,7 @@
 using Sharp.Models.Paginas;
 using Sharp.Models.Paginas.Controllers;
 using Sharp.Models.Portfolios;
-using Sharp.Models.Portfolios.Projetos;
+using Sharp.Models.Projetos;
 
 namespace Sharp.Controllers.Api
 {
@@ -12,7 +12,7 @@ namespace Sharp.Controllers.Api
         [HttpGet]
         public IActionResult BuscarProjetosUsuario()
         {
-            RetornoAPI<List<Projeto>?> resultado = new RetornoAPI<List<Projeto>?>();
+            RetornoAPI<List<BaseProjeto>?> resultado = new ();
 
             try
             {

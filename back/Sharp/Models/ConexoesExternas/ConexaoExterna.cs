@@ -4,7 +4,7 @@ using Npgsql;
 using Sharp.Models.Bancos;
 using Sharp.Models.Bancos.Tabelas;
 using Sharp.Models.Usuarios;
-using Sharp.SessionAtual;
+using Sharp.Models.Session.SessionAtual;
 
 namespace Sharp.Models.ConexoesExternas
 {
@@ -99,7 +99,7 @@ namespace Sharp.Models.ConexoesExternas
             NpgsqlParameter paramNomeConta = new("@param_nome_conexao", NomeDaConexao);
 
             string function = "buscar_id_login_conexao";
-            dynamic? resultado = TabelaRelacionamento.ExecutarFunctionUnica<dynamic>(function, [paramIdUsuario, paramNomeConta]);
+            dynamic? resultado = TabelaRelacionamento.conexao.ExecutarFunctionUnica<dynamic>(function, [paramIdUsuario, paramNomeConta]);
 
             IdLogin = ConexaoBanco.BuscarPropriedadeDynamic<string>(resultado, "id_conexao");
         }

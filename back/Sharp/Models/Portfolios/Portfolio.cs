@@ -1,57 +1,42 @@
 ﻿using Newtonsoft.Json;
 using Sharp.Models.Usuarios;
-using Sharp.Models.Portfolios.Projetos;
 using Sharp.Models.Bancos.Tabelas;
 using Npgsql;
+using Sharp.Models.Projetos;
+using Sharp.Models.Projetos.TiposDeProjetos;
 
 namespace Sharp.Models.Portfolios
 {
     public class Portfolio
     {
-        #region Propriedades
-        [JsonIgnore]
-        public static TabelaComTipo<Portfolio> Tabela = new TabelaComTipo<Portfolio>("portfolio");
-
-        [JsonIgnore]
-        UsuarioLogavel UsuarioLogavel { get; set; }
+        #region Propriedades  
+        [JsonIgnore] public static TabelaComTipo<Portfolio> Tabela = new TabelaComTipo<Portfolio>("portfolio");
+        [JsonIgnore] UsuarioLogavel UsuarioLogavel { get; set; }
 
         public string? Id { get; set; }
         public string? Descricao { get; set; } = string.Empty;
-        #endregion Propriedades
+
+        FabricaDeProjetos fabrica = new FabricaDeProjetos();
+        #endregion Propriedades  
 
 
-        #region Construtores
+        #region Construtores  
         public Portfolio(UsuarioLogavel usuarioLogavel)
         {
-            UsuarioLogavel = usuarioLogavel;  
+            UsuarioLogavel = usuarioLogavel;
         }
-        #endregion Construtores
+        #endregion Construtores  
 
 
         #region Métodos
-        //public static Portfolio? BuscarPorUsuario(string idUsuario)
-        //{
-        //    NpgsqlParameter paramIdUsuario = new NpgsqlParameter("@id_usuario", idUsuario);
-        //    string query = string.Concat("SELECT * FROM ", Tabela.NomeTabela, "WHERE id_usuario = ", paramIdUsuario.ParameterName);
-
-        //    Portfolio? resultado = Tabela.BuscarUnico<Portfolio>(query);
-        //    return resultado;
-        //}
-
-        //public Portfolio BuscarInformacoesDoBanco()
-        //{
-        //    // TODO: continuar
-        //    return this;
-        //}
-
-        protected List<dynamic?>? BuscarInfoProjetosDoBanco()
+        protected List<dynamic> BuscarInfoProjetosDoBanco()
         {
             try
             {
                 NpgsqlParameter paramIdUsuario = new NpgsqlParameter("@param_id_usuario", UsuarioLogavel.Id);
                 string nomeFuncao = "buscar_projetos_usuario";
 
-                List<dynamic?>? projetos = Projeto.Tabela.conexao.ExecutarFunction<dynamic>(nomeFuncao, [paramIdUsuario]);
+                List<dynamic> projetos = BaseProjeto.Tabela.conexao.ExecutarFunction<dynamic>(nomeFuncao, [paramIdUsuario]) ?? [];
 
                 return projetos;
             }
@@ -62,40 +47,40 @@ namespace Sharp.Models.Portfolios
             }
         }
 
-        public List<BaseProjeto?> BuscarProjetos()
+        protected List<BaseProjeto> ConverterListaDynamicParaProjeto(List<dynamic> listaProjetosDynamic)
+        {
+            List<BaseProjeto> projetosFinalizados = new List<BaseProjeto>();
+            foreach (dynamic projetoDynamic in listaProjetosDynamic)
+            {
+                BaseProjeto? projeto = fabrica.CriarProjeto(projetoDynamic);
+                if (projeto != null)
+                {
+                    projetosFinalizados.Add(projeto);
+                }
+            }
+
+            return projetosFinalizados;
+        }
+
+        public List<BaseProjeto> BuscarProjetos()
         {
             try
             {
-                List<dynamic?>? projetosEncontrados = BuscarInfoProjetosDoBanco();
-                List<BaseProjeto?> projetosFinalizados = new List<BaseProjeto?>();
+                List<dynamic>? projetosEncontrados = BuscarInfoProjetosDoBanco();
 
-                FabricaDeProjetos fabrica = new FabricaDeProjetos();
+                List<BaseProjeto> projetosFinalizados = ConverterListaDynamicParaProjeto(projetosEncontrados);
+                projetosEncontrados.Clear();
 
-                while (projetosEncontrados?.Count > 0)
-                {
-                    dynamic? projetoEncontrado = projetosEncontrados[0];
-
-                    if (projetoEncontrado != null)
-                    {
-                        BaseProjeto? projeto = fabrica.CriarProjeto(projetoEncontrado);
-
-                        if (projeto != null)
-                        {
-                            projetosFinalizados.Add(projeto);
-                        }
-                    }
-                    
-                    projetosEncontrados.RemoveAt(0);
-                }
+                projetosFinalizados.ForEach(p => p.BuscarTodasAsInformacoes());
 
                 return projetosFinalizados;
             }
 
-            catch (Exception err)
+            catch (Exception)
             {
                 throw new Exception("Ocorreu um problema ao buscar os projetos do usuário.");
             }
         }
-        #endregion Métodos
+        #endregion Métodos  
     }
 }

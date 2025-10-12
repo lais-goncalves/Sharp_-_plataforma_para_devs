@@ -4,23 +4,26 @@ using Sharp.Models.Bancos.Tabelas;
 using Sharp.Models.Portfolios.Recursos;
 using Sharp.Models.Usuarios;
 
-namespace Sharp.Models.Portfolios.Projetos
+namespace Sharp.Models.Projetos
 {
     public abstract class BaseProjeto
     {
         #region Propriedades  
         [JsonIgnore]
         public static TabelaComTipo<BaseProjeto> Tabela => new TabelaComTipo<BaseProjeto>("projeto");
-        [JsonIgnore]
-        public string? Id { get; }
-        [JsonIgnore]
-        public static string? _Tipo => null;
 
-        public string? Tipo { get; protected set; }
-        public string? Nome { get; }
-        public string? Descricao { get; }
-        public string? Status { get; }
-        public List<Recurso>? Ferramentas { get; }
+        [JsonIgnore]
+        public string? Id { get; set; }
+
+        [JsonIgnore]
+        protected static string TipoProjeto => "";
+
+        [JsonProperty("tipo")]
+        public string? Tipo { get; set; }
+        public string? Nome { get; set; }
+        public string? Descricao { get; set; }
+        public string? Status { get; set; }
+        public List<Recurso>? Ferramentas { get; set; }
         #endregion Propriedades  
 
         #region Construtores  
@@ -32,13 +35,15 @@ namespace Sharp.Models.Portfolios.Projetos
             this.Tipo = Tipo;
             this.Status = Status;
         }
+
+        public BaseProjeto() { }
         #endregion Construtores  
 
         #region Métodos  
         protected static List<BaseProjeto>? BuscarProjetosDoTipo(Usuario usuario)
         {
             NpgsqlParameter paramIdUsuario = new("@param_id_usuario", usuario.Id);
-            NpgsqlParameter paramTipoProjeto = new("@param_tipo_projeto", _Tipo);
+            NpgsqlParameter paramTipoProjeto = new("@param_tipo_projeto", TipoProjeto);
 
             string function = "buscar_projetos_usuario_por_tipo";
 

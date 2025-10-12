@@ -4,7 +4,7 @@ using Sharp.Models.Session;
 using Sharp.Models.Usuarios;
 using Sharp.Models.Usuarios.Perfis;
 
-namespace Sharp.SessionAtual
+namespace Sharp.Models.Session.SessionAtual
 {
     public class UsuarioAtual : UsuarioLogavel
     {
