@@ -28,12 +28,6 @@ namespace Sharp.Models.Usuarios.Perfis.TiposDePerfis
             ConexoesDoUsuario.Clear();
             ConexoesDoUsuario.Add("github", new ConexaoGitHub(UsuarioLogavel));
         }
-
-        public override UsuarioLogavel? Registrar()
-        {
-            // TODO: implementar registro
-            return default;
-        }
         #endregion Métodos
     }
 }

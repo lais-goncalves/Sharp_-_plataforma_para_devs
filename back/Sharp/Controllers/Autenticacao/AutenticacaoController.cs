@@ -29,28 +29,27 @@ namespace Sharp.Controllers.Autenticacao
         }
 
         [HttpPost]
-        public ActionResult Registrar(string apelido, string senha)
-        {
-            // TODO: ESCAPAR CARACTERES DO APELIDO E DA SENHA
+        public ActionResult Cadastrar(string email, string nomeCompleto, string apelido, string senha, string tipoPerfil)
+        {                
+            RetornoAPI<bool> retorno = new();
 
-            //try
-            //{
-            //    RetornoAPI<bool> registroEfetuado = Usuario.Registrar(apelido, senha);
+            try
+            {
+                bool foiCadastrado = Usuario.Cadastrar(email, nomeCompleto, apelido, senha, tipoPerfil);
 
-            //    if (registroEfetuado.Erro != null)
-            //    {
-            //        throw registroEfetuado.Erro;
-            //    }
+                if (!foiCadastrado)
+                {
+                    throw new Exception("Não foi possível cadastrar o usuário. Tente novamente");
+                }
 
-            //    return Ok(registroEfetuado.Item);
-            //}
+                return Ok();
+            }
 
-            //catch(Exception err)
-            //{
-            //    return BadRequest(err.Message);
-            //}
-
-            return Ok();
+            catch (Exception err)
+            {
+                retorno.DefinirErro(err);
+                return BadRequest(retorno);
+            }
         }
 
         [HttpGet]

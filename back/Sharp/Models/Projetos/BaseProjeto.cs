@@ -40,7 +40,7 @@ namespace Sharp.Models.Projetos
         #endregion Construtores  
 
         #region Métodos  
-        protected static List<BaseProjeto>? BuscarProjetosDoTipo(Usuario usuario)
+        protected static List<BaseProjeto>? BuscarProjetosCadastradosDoTipo(Usuario usuario)
         {
             NpgsqlParameter paramIdUsuario = new("@param_id_usuario", usuario.Id);
             NpgsqlParameter paramTipoProjeto = new("@param_tipo_projeto", TipoProjeto);

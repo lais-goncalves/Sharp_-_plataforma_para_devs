@@ -38,6 +38,14 @@ namespace Sharp.Models.Projetos
                 return null;
             }
         }
+
+        public BaseProjeto? CriarECarregarDadosProjeto(dynamic p)
+        {
+            BaseProjeto? projeto = CriarProjeto(p);
+            projeto?.BuscarTodasAsInformacoes();
+
+            return projeto;
+        }
         #endregion Métodos
     }
 }

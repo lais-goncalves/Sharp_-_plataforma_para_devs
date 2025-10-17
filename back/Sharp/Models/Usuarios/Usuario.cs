@@ -64,6 +64,29 @@ namespace Sharp.Models.Usuarios
             return usuario;
         }
 
+        public static bool Cadastrar(string email, string nome_completo, string apelido, string senha, string tipoPerfil)
+        {
+            try
+            {
+                NpgsqlParameter paramNomeCompleto = new("@param_nome_completo", nome_completo);
+                NpgsqlParameter paramEmail = new("@param_email", email);
+                NpgsqlParameter paramApelido = new("@param_apelido", apelido);
+                NpgsqlParameter paramSenha = new("@param_senha", senha);
+                NpgsqlParameter paramTipoPerfil = new("@param_nome_tipo_perfil", tipoPerfil);
+                string procedure = string.Concat("cadastrar_usuario");
+
+                Tabela.conexao.ExecutarProcedure(procedure, [paramNomeCompleto,  paramEmail, paramApelido, paramSenha, paramTipoPerfil]);
+
+                return true;
+            }
+
+            catch (Exception err)
+            {
+                Console.WriteLine(err.Message);
+                return false;
+            }
+        }
+
         public static Usuario? BuscarPorId(string id)
         {
             bool podeConverter = int.TryParse(id, null, out int idInt);

@@ -52,7 +52,7 @@ namespace Sharp.Models.Portfolios
             List<BaseProjeto> projetosFinalizados = new List<BaseProjeto>();
             foreach (dynamic projetoDynamic in listaProjetosDynamic)
             {
-                BaseProjeto? projeto = fabrica.CriarProjeto(projetoDynamic);
+                BaseProjeto? projeto = fabrica.CriarECarregarDadosProjeto(projetoDynamic);
                 if (projeto != null)
                 {
                     projetosFinalizados.Add(projeto);

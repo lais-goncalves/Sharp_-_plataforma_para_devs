@@ -26,7 +26,6 @@ namespace Sharp.Models.Usuarios.Perfis
 
         #region Métodos
         protected abstract void definirConexoes();
-        public abstract Usuario? Registrar();
         #endregion Métodos
     }
 }

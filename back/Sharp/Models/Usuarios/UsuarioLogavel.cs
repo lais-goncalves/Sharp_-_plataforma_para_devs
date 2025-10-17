@@ -61,10 +61,7 @@ namespace Sharp.Models.Usuarios
 
 
                 Usuario? usuario = VerificarLogin(emailOuApelido, senha);
-                if (usuario != null) 
-                {
-                    definirNovoUsuario(usuario);
-                }
+                definirNovoUsuario(usuario);
 
                 return usuario;
             }
@@ -90,11 +87,6 @@ namespace Sharp.Models.Usuarios
             }
 
             return Logar(credencial, novoUsuario.Senha);
-        }
-
-        public Usuario? Registrar()
-        {
-            return Perfil?.Registrar();
         }
 
         public void Deslogar()
