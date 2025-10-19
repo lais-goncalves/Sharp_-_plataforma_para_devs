@@ -16,7 +16,7 @@ namespace Sharp.Models.ConexoesExternas.TiposDeConexoes
     public class ConexaoGitHub : ConexaoExterna
     {
         #region Propriedades
-        protected static string? urlSite = "https://api.github.com";
+        public static string? urlSite = "https://api.github.com";
         public static string? CLIENT_ID = buscarClientId();
         public static string? CLIENT_SECRET = buscarClientSecret();
         public override string? NomeDaConexao { get; protected set; } = "github";
@@ -113,8 +113,10 @@ namespace Sharp.Models.ConexoesExternas.TiposDeConexoes
             }
         }
 
-        protected static string? BuscarIdDaFonte(string tokenDeAcesso)
+        protected static Dictionary<string, string?> BuscaInfoDaFonte(string tokenDeAcesso)
         {
+            Dictionary<string, string?> infoUsuario = new ();
+
             try
             {
                 HttpClient clienteHttp = new();
@@ -138,19 +140,21 @@ namespace Sharp.Models.ConexoesExternas.TiposDeConexoes
                 }
 
                 dynamic? objInfoGitHubUsuario = JsonConvert.DeserializeObject(infoGitHubUsuario);
-                string? idInfoGitHub = objInfoGitHubUsuario?.id;
 
-                return idInfoGitHub;
+                infoUsuario["id"] = objInfoGitHubUsuario?.id;
+                infoUsuario["apelido"] = objInfoGitHubUsuario?.login;
+
+                return infoUsuario;
             }
 
             catch (Exception err)
             {
                 Console.WriteLine(err.Message);
-                return null;
+                return infoUsuario;
             }
         }
 
-        public static async Task<string?> BuscarTokenEId(string codigoDoUsuario)
+        public static async Task<Dictionary<string, string?>> BuscarTokenEId(string codigoDoUsuario)
         {
             try
             {
@@ -160,8 +164,8 @@ namespace Sharp.Models.ConexoesExternas.TiposDeConexoes
                     throw new Exception("Login mal sucedido. Tente novamente.");
                 }
 
-                string? idGitHub = BuscarIdDaFonte(tokenDeAcesso);
-                return idGitHub;
+                Dictionary<string, string?> infoUsuario = BuscaInfoDaFonte(tokenDeAcesso);
+                return infoUsuario;
             }
 
             catch (Exception err)
@@ -185,6 +189,7 @@ namespace Sharp.Models.ConexoesExternas.TiposDeConexoes
             UsuarioLogavel.Logar(usuarioAutenticado?.Email, usuarioAutenticado?.Senha);
             if (!UsuarioLogavel.EstaLogado())
             {
+                // TODO: dá problema ao tentar logar com o github, arruamr
                 throw new Exception("Houve um problema ao tentar logar. Tente novamente.");
             }
         }
@@ -196,15 +201,18 @@ namespace Sharp.Models.ConexoesExternas.TiposDeConexoes
             // TODO: separar método em partes menores
             try
             {
-                string? idGitHub = await BuscarTokenEId(codigo);
-                if (idGitHub == null)
+                Dictionary<string, string?>? infoUsuario = await BuscarTokenEId(codigo);
+                string? id = infoUsuario["id"];
+                string? apelido = infoUsuario["apelido"];
+
+                if (id == null || apelido == null)
                 {
                     throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
                 }
 
                 if (!UsuarioLogavel.EstaLogado())
                 {
-                    LogarUsuarioUsandoId(idGitHub);
+                    LogarUsuarioUsandoId(id);
                 }
 
                 // se usuário já estiver logado
@@ -216,7 +224,7 @@ namespace Sharp.Models.ConexoesExternas.TiposDeConexoes
                     if (idGitHubUsuario == null)
                     {
                         // definir ID do github no banco caso não esteja definido
-                        bool idFoiDefinido = conexaoGitUsuario.DefinirIdNoBanco(idGitHub);
+                        bool idFoiDefinido = conexaoGitUsuario.CadastrarConexao(id, apelido);
                         if (!idFoiDefinido)
                         {
                             throw new Exception("Um erro ocorreu ao tentar buscar as informações do GitHub. Tente logar novamente.");
@@ -224,7 +232,7 @@ namespace Sharp.Models.ConexoesExternas.TiposDeConexoes
                     }
 
                     // caso já esteja definido, mas o ID buscado é diferente do banco
-                    else if (idGitHubUsuario != idGitHub)
+                    else if (idGitHubUsuario != id)
                     {
                         throw new Exception("Já existe um usuário logado nesta conexaoExterna. Tente usar outra.");
                     }

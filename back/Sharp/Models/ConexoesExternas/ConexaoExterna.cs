@@ -19,6 +19,7 @@ namespace Sharp.Models.ConexoesExternas
         protected UsuarioLogavel UsuarioLogavel { get; }
         [JsonIgnore]
         public string? IdLogin { get; protected set; }
+        public string? Apelido { get; protected set; }
 
         public abstract string? NomeDaConexao { get; protected set; }
         #endregion Propriedades
@@ -29,10 +30,10 @@ namespace Sharp.Models.ConexoesExternas
         {
             UsuarioLogavel = usuarioLogavel;
 
-            if (UsuarioLogavel.EstaLogado())
-            {
-                BuscarInformacoesDoBanco();
-            }
+            //if (UsuarioLogavel.EstaLogado())
+            //{
+            //    BuscarInformacoesDoBanco();
+            //}
         }
         #endregion Construtores
 
@@ -43,6 +44,7 @@ namespace Sharp.Models.ConexoesExternas
             return !string.IsNullOrEmpty(IdLogin);
         }
 
+        // TODO: ARRUMAR -> NÃO ESTÁ LOGANDO COM GITHUB
         public Usuario? BuscarUsuarioPorIdDeLogin(string id)
         {
             try
@@ -69,16 +71,17 @@ namespace Sharp.Models.ConexoesExternas
             }
         }
 
-        public virtual bool DefinirIdNoBanco(string id)
+        public virtual bool CadastrarConexao(string id, string apelido)
         {
             try
             {
                 NpgsqlParameter paramId = new NpgsqlParameter("@param_id_usuario", UsuarioLogavel?.Id);
                 NpgsqlParameter paramNomeConta = new NpgsqlParameter("@param_nome_conexao", NomeDaConexao);
                 NpgsqlParameter paramIdConta = new NpgsqlParameter("@param_id_login_conexao", id);
+                NpgsqlParameter paramApelido = new NpgsqlParameter("@param_apelido_usuario_conexao", apelido);
 
-                string procedure = "inserir_id_login_conexao";
-                Tabela.conexao.ExecutarProcedure(procedure, [paramId, paramNomeConta, paramIdConta]);
+                string procedure = "cadastrar_conexao_usuario";
+                Tabela.conexao.ExecutarProcedure(procedure, [paramId, paramNomeConta, paramIdConta, paramApelido]);
 
                 BuscarTodasAsInfomacoes();
                 return true;
@@ -98,10 +101,11 @@ namespace Sharp.Models.ConexoesExternas
             NpgsqlParameter paramIdUsuario = new("@param_id_usuario", UsuarioLogavel.Id);
             NpgsqlParameter paramNomeConta = new("@param_nome_conexao", NomeDaConexao);
 
-            string function = "buscar_id_login_conexao";
+            string function = "buscar_conexao_usuario";
             dynamic? resultado = TabelaRelacionamento.conexao.ExecutarFunctionUnica<dynamic>(function, [paramIdUsuario, paramNomeConta]);
 
-            IdLogin = ConexaoBanco.BuscarPropriedadeDynamic<string>(resultado, "id_conexao");
+            IdLogin = ConexaoBanco.BuscarPropriedadeDynamic<string>(resultado, "id_usuario_conexao");
+            Apelido = ConexaoBanco.BuscarPropriedadeDynamic<string>(resultado, "apelido_usuario_conexao");
         }
 
         public virtual ConexaoExterna BuscarTodasAsInfomacoes()
