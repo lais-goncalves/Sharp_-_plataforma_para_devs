@@ -1,10 +1,8 @@
-﻿using System.Reflection;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using Npgsql;
 using Sharp.Models.Bancos;
 using Sharp.Models.Bancos.Tabelas;
 using Sharp.Models.Usuarios;
-using Sharp.Models.Session.SessionAtual;
 
 namespace Sharp.Models.ConexoesExternas
 {
@@ -44,7 +42,7 @@ namespace Sharp.Models.ConexoesExternas
             return !string.IsNullOrEmpty(IdLogin);
         }
 
-        // TODO: ARRUMAR -> NÃO ESTÁ LOGANDO COM GITHUB
+        // FIXME: ARRUMAR -> NÃO ESTÁ LOGANDO COM GITHUB
         public Usuario? BuscarUsuarioPorIdDeLogin(string id)
         {
             try

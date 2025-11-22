@@ -1,10 +1,3 @@
-﻿using Newtonsoft.Json;
-using Sharp.Models.Usuarios;
-using Sharp.Models.Bancos.Tabelas;
-using Npgsql;
-using Sharp.Models.Projetos;
-using Sharp.Models.Projetos.TiposDeProjetos;
-
 namespace Sharp.Models.Portfolios
 {
     public class Portfolio
@@ -26,7 +19,10 @@ namespace Sharp.Models.Portfolios
             UsuarioLogavel = usuarioLogavel;
         }
         #endregion Construtores  
-
+        
+        #region Construtores
+        
+        #endregion Construtores
 
         #region Métodos
         protected List<dynamic> BuscarInfoProjetosDoBanco()

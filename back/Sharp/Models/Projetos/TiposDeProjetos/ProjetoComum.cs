@@ -1,9 +1,3 @@
-﻿using Newtonsoft.Json;
-using Sharp.Models.Bancos.Tabelas;
-using Sharp.Models.ConexoesExternas.TiposDeConexoes;
-using Sharp.Models.Portfolios.Recursos;
-using Sharp.Models.Usuarios;
-
 namespace Sharp.Models.Projetos.TiposDeProjetos
 {
     public class ProjetoComum : BaseProjeto

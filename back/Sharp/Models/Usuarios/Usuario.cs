@@ -1,6 +1,4 @@
-﻿using System.Data;
-using System.Text.Json.Serialization;
-using Microsoft.Data.SqlClient;
+﻿using System.Text.Json.Serialization;
 using Sharp.Models.Bancos.Tabelas;
 using Npgsql;
 

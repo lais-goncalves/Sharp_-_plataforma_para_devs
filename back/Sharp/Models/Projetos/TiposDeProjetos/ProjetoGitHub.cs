@@ -1,6 +1,7 @@
 ﻿using System.Collections.Specialized;
 using System.Net.Http.Headers;
 using System.Web;
+using Newtonsoft.Json;
 using Sharp.Models.ConexoesExternas.TiposDeConexoes;
 using Sharp.Models.Portfolios.Recursos;
 using Sharp.Models.Usuarios;
@@ -26,11 +27,9 @@ namespace Sharp.Models.Projetos.TiposDeProjetos
 
 
         #region Métodos
-        public static List<ProjetoGitHub> BuscarTodosOsProjetos(UsuarioLogavel Usuario)
+        private static NameValueCollection? BuscarProjetosDaFonte(UsuarioLogavel usuario)
         {
-            List<ProjetoGitHub> projetos = new List<ProjetoGitHub>();
-
-            ConexaoGitHub conexaoGitHub = (ConexaoGitHub)Usuario.Perfil.ConexoesDoUsuario["github"];
+            ConexaoGitHub conexaoGitHub = (ConexaoGitHub)usuario.Perfil.ConexoesDoUsuario["github"];
             conexaoGitHub.BuscarTodasAsInfomacoes();
             string? apelidoUsuarioGitHub = conexaoGitHub.Apelido;
 
@@ -43,15 +42,28 @@ namespace Sharp.Models.Projetos.TiposDeProjetos
             buscaPerfil.Headers.UserAgent.ParseAdd("Sharp");
 
             var retornoInfoUsuario = clienteHttp.Send(buscaPerfil);
-            string? resultadoBusca = retornoInfoUsuario.Content?.ReadAsStringAsync().Result;
+            string resultadoBusca = retornoInfoUsuario.Content?.ReadAsStringAsync().Result ?? "";
+
+            NameValueCollection? objResultado = HttpUtility.ParseQueryString(resultadoBusca);
+            return objResultado;
+        }
+
+        public static List<ProjetoGitHub> BuscarTodosOsProjetos(UsuarioLogavel usuario)
+        {
+            List<ProjetoGitHub> projetos = new List<ProjetoGitHub>();
+            NameValueCollection? resultadoBusca = BuscarProjetosDaFonte(usuario);
 
             if (resultadoBusca == null)
             {
                 return projetos;
             }
 
-            NameValueCollection? objResultado = HttpUtility.ParseQueryString(resultadoBusca);
-            Console.WriteLine(objResultado.ToString());
+            foreach (var objResultado in resultadoBusca)
+            {
+                var objetoParseado = JsonConvert.SerializeObject(objResultado);
+
+                Console.WriteLine(objResultado.ToString());
+            }
 
             return projetos;
         }

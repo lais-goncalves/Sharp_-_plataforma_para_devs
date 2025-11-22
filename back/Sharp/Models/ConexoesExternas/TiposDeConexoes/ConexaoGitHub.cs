@@ -1,15 +1,9 @@
 ﻿using System.Collections.Specialized;
 using System.Net.Http.Headers;
 using System.Web;
-using Azure;
-using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Npgsql;
-using Sharp.Models.Bancos;
-using Sharp.Models.ConexoesExternas;
 using Sharp.Models.Paginas;
 using Sharp.Models.Usuarios;
-using Sharp.Models.Usuarios.Perfis.TiposDePerfis;
 
 namespace Sharp.Models.ConexoesExternas.TiposDeConexoes
 {
@@ -189,7 +183,7 @@ namespace Sharp.Models.ConexoesExternas.TiposDeConexoes
             UsuarioLogavel.Logar(usuarioAutenticado?.Email, usuarioAutenticado?.Senha);
             if (!UsuarioLogavel.EstaLogado())
             {
-                // TODO: dá problema ao tentar logar com o github, arruamr
+                // FIXME: dá problema ao tentar logar com o github, arruamr
                 throw new Exception("Houve um problema ao tentar logar. Tente novamente.");
             }
         }

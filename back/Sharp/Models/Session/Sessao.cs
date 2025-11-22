@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Microsoft.AspNetCore.Http;
 
 namespace Sharp.Models.Session
 {
