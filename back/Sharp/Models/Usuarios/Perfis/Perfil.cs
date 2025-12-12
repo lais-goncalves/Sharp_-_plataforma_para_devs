@@ -1,31 +1,25 @@
-﻿using Newtonsoft.Json;
-using Sharp.Models.ConexoesExternas;
-using Sharp.Models.ConexoesExternas.TiposDeConexoes;
+﻿using Sharp.Models.Session;
 
-namespace Sharp.Models.Usuarios.Perfis
+namespace Sharp.Models.Usuarios.Perfis;
+
+public abstract class Perfil
 {
-    public abstract class Perfil
-    {
-        #region Propriedades
-        [JsonIgnore]
-        public Dictionary<string, ConexaoExterna> ConexoesDoUsuario { get; } = [];
-
-        protected UsuarioLogavel UsuarioLogavel { get; set; }
-        public abstract string NomePerfil { get; }
-        #endregion Propriedades
+	#region Construtores
+	public Perfil(UsuarioAtual usuario)
+	{
+		UsuarioAtual = usuario;
+		definirConexoes();
+	}
+	#endregion Construtores
 
 
-        #region Construtores
-        public Perfil(UsuarioLogavel usuario)
-        {
-            UsuarioLogavel = usuario;
-            definirConexoes();
-        }
-        #endregion Construtores
+	#region Métodos
+	protected abstract void definirConexoes();
+	#endregion Métodos
 
 
-        #region Métodos
-        protected abstract void definirConexoes();
-        #endregion Métodos
-    }
+	#region Propriedades
+	protected UsuarioAtual UsuarioAtual { get; set; }
+	public abstract string NomePerfil { get; }
+	#endregion Propriedades
 }

@@ -15,8 +15,9 @@ namespace Sharp.Controllers.Api
 
             try
             {
-                Post? post = Post.BuscarPorId(id);
-                resultado.DefinirDados(post);
+                // TODO: jogar isso na model
+                // Post? post = Post.BuscarPorId(id);
+                //resultado.DefinirDados(post);
 
                 return Ok(resultado);
             }
@@ -35,7 +36,10 @@ namespace Sharp.Controllers.Api
 
             try
             {
-                List<Post?>? posts = Post.BuscarTodos();
+                // TODO: jogar isso na model
+                // List<Post?>? posts = Post.BuscarTodos();
+
+                List<Post?>? posts = new();
                 resultado.DefinirDados(posts);
 
                 return Ok(resultado);
@@ -55,7 +59,7 @@ namespace Sharp.Controllers.Api
 
             try
             {
-                if (!UsuarioAtual.EstaLogado())
+                if (!UsuarioAtual.EstaLogado)
                 {
                     throw new Exception("Você deve estar logado para poder postar.");
                 }

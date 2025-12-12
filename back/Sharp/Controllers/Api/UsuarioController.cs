@@ -15,7 +15,10 @@ namespace Sharp.Controllers.Api
 
             try
             {
-                List<Usuario?>? usuarios = Usuario.BuscarTodos();
+                // TODO: jogar isso na model
+                //List<Usuario?>? usuarios = Usuario.BuscarTodos();
+
+                List<Usuario?>? usuarios = new();
                 resultado.DefinirDados(usuarios);
 
                 return Ok(resultado);
@@ -35,7 +38,10 @@ namespace Sharp.Controllers.Api
 
             try
             {
-                Usuario? usuario = Usuario.BuscarPorApelido(apelido);
+                // TODO: jogar isso na model
+                // Usuario? usuario = Usuario.BuscarPorApelido(apelido);
+
+                Usuario usuario = new();
                 resultado.DefinirDados(usuario);
 
                 return Ok(resultado);

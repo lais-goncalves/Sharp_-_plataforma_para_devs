@@ -1,66 +1,62 @@
 ﻿using Newtonsoft.Json;
 using Npgsql;
-using Sharp.Models.Bancos.Tabelas;
+using Sharp.Models.Bancos;
 using Sharp.Models.Portfolios.Recursos;
 using Sharp.Models.Usuarios;
 
-namespace Sharp.Models.Projetos
+namespace Sharp.Models.Projetos;
+
+public abstract class BaseProjeto
 {
-    public abstract class BaseProjeto
-    {
-        #region Propriedades  
-        [JsonIgnore]
-        public static TabelaComTipo<BaseProjeto> Tabela => new TabelaComTipo<BaseProjeto>("projeto");
+	#region Propriedades
+	[JsonIgnore] private static ConexaoBanco conexaoBanco => new ConexaoBanco();
+	[JsonIgnore] public string? Id { get; set; }
+	[JsonIgnore] protected static string TipoProjeto => "";
+	[JsonProperty("tipo")] public string? Tipo { get; set; }
 
-        [JsonIgnore]
-        public string? Id { get; set; }
+	public string? Nome { get; set; }
+	public string? Descricao { get; set; }
+	public string? Status { get; set; }
+	public List<Recurso>? Ferramentas { get; set; }
+	#endregion Propriedades
 
-        [JsonIgnore]
-        protected static string TipoProjeto => "";
 
-        [JsonProperty("tipo")]
-        public string? Tipo { get; set; }
-        public string? Nome { get; set; }
-        public string? Descricao { get; set; }
-        public string? Status { get; set; }
-        public List<Recurso>? Ferramentas { get; set; }
-        #endregion Propriedades  
+	#region Construtores
+	public BaseProjeto(string Id, string? Nome, string? Descricao, string? Tipo, string? Status)
+	{
+		this.Id = Id;
+		this.Nome = Nome;
+		this.Descricao = Descricao;
+		this.Tipo = Tipo;
+		this.Status = Status;
+	}
 
-        #region Construtores  
-        public BaseProjeto(string Id, string? Nome, string? Descricao, string? Tipo, string? Status)
-        {
-            this.Id = Id;
-            this.Nome = Nome;
-            this.Descricao = Descricao;
-            this.Tipo = Tipo;
-            this.Status = Status;
-        }
+	public BaseProjeto() { }
+	#endregion Construtores
 
-        public BaseProjeto() { }
-        #endregion Construtores  
 
-        #region Métodos  
-        protected static List<BaseProjeto>? BuscarProjetosCadastradosDoTipo(Usuario usuario)
-        {
-            NpgsqlParameter paramIdUsuario = new("@param_id_usuario", usuario.Id);
-            NpgsqlParameter paramTipoProjeto = new("@param_tipo_projeto", TipoProjeto);
+	#region Métodos
+	protected static List<BaseProjeto>? BuscarProjetosCadastradosDoTipo(Usuario usuario)
+	{
+		NpgsqlParameter paramIdUsuario = new("@param_id_usuario", usuario.Id);
+		NpgsqlParameter paramTipoProjeto = new("@param_tipo_projeto", TipoProjeto);
 
-            string function = "buscar_projetos_usuario_por_tipo";
+		var function = "buscar_projetos_usuario_por_tipo";
 
-            List<BaseProjeto>? resultado = Tabela.conexao.ExecutarFunction<BaseProjeto>(function, new List<NpgsqlParameter> { paramIdUsuario, paramTipoProjeto });
+		List<BaseProjeto>? resultado =
+			conexaoBanco.ExecutarFunction<BaseProjeto>(function, [ paramIdUsuario, paramTipoProjeto ]);
 
-            return resultado;
-        }
+		return resultado;
+	}
 
-        protected abstract void BuscarFerramentas();
+	protected abstract void BuscarFerramentas();
 
-        protected abstract void BuscarDemaisInformacoes();
+	protected abstract void BuscarDemaisInformacoes();
 
-        public virtual void BuscarTodasAsInformacoes()
-        {
-            BuscarDemaisInformacoes();
-            BuscarFerramentas();
-        }
-        #endregion Métodos  
-    }
+	public virtual void BuscarTodasAsInformacoes()
+	{
+		BuscarDemaisInformacoes();
+		BuscarFerramentas();
+	}
+	#endregion Métodos
 }

@@ -1,28 +1,25 @@
 ﻿using Newtonsoft.Json;
-using Microsoft.AspNetCore.Http;
 
-namespace Sharp.Models.Session
+namespace Sharp.Models.Session;
+
+public class Sessao(HttpContext httpContext, string rotuloItem)
 {
-    public class Sessao(HttpContext httpContext, string nome)
-    {
-        private HttpContext HttpContext { get; set; } = httpContext;
-        protected string Nome { get; set; } = nome;
+	#region Propriedades
+	private HttpContext HttpContext { get; } = httpContext;
+	protected string RotuloItem { get; set; } = rotuloItem;
+	#endregion Propriedades
 
-        public void DefinirValor(object? value)
-        {
-            HttpContext.Session.SetString(Nome, JsonConvert.SerializeObject(value));
-        }
 
-        public T? BuscarValor<T>()
-        {
-            var value = HttpContext.Session.GetString(Nome);
-            return value == null ? default : JsonConvert.DeserializeObject<T>(value);
-        }
+	#region Métodos
+	public void DefinirValor(object? value)
+	{
+		HttpContext.Session.SetString(RotuloItem, JsonConvert.SerializeObject(value));
+	}
 
-        public T? BuscarValor<T>(string key)
-        {
-            var value = HttpContext.Session.GetString(key);
-            return value == null ? default : JsonConvert.DeserializeObject<T>(value);
-        }
-    }
+	public T? BuscarValor<T>()
+	{
+		var value = HttpContext.Session.GetString(RotuloItem);
+		return value == null ? default : JsonConvert.DeserializeObject<T>(value);
+	}
+	#endregion Métodos
 }

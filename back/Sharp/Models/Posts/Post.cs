@@ -1,108 +1,92 @@
 ﻿using System.Data;
-using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using Npgsql;
 using Sharp.Models.Usuarios;
-using Sharp.Models.Bancos.Tabelas;
 
-namespace Sharp.Models.Posts
+namespace Sharp.Models.Posts;
+
+public class Post
 {
-    public class Post
-    {
-        #region Propriedades
-        static TabelaComTipo<Post> tabela = new TabelaComTipo<Post>("Post");
-
-        [JsonIgnore]
-        public int? Id { get; set; }
-        [JsonIgnore]
-        public int? PostadoPor { get; set; }
-
-        public string? Titulo { get; set; }
-        public string? Texto { get; set; }
-        public DateTime? PostadoEm { get; set; }
-        #endregion Propriedades
-
-
-        #region Construtores
-        [JsonConstructor]
-        public Post(
-            int? id,
-            string? titulo,
-            string? texto,
-            int? postado_por,
-            DateTime? postado_em
-        ) : base()
-        {
-            Id = id;
-            Titulo = titulo;
-            Texto = texto;
-            PostadoPor = postado_por;
-            PostadoEm = postado_em;
-        }
-        #endregion Construtores
+	#region Construtores
+	[JsonConstructor]
+	public Post(
+		int? id,
+		string? titulo,
+		string? texto,
+		int? postado_por,
+		DateTime? postado_em
+	)
+	{
+		Id = id;
+		Titulo = titulo;
+		Texto = texto;
+		PostadoPor = postado_por;
+		PostadoEm = postado_em;
+	}
+	#endregion Construtores
 
 
-        #region Métodos
-        public static Post? extrairObjetoDoReader(NpgsqlDataReader reader)
+	#region Propriedades
+	[JsonIgnore] public int? Id { get; set; }
 
-        {
-            int? id = reader.GetInt32("id");
-            string? titulo = reader.GetString("titulo");
-            string? texto = reader.GetString("texto");
-            int? postado_por = reader.GetInt32("postado_por");
-            DateTime? postado_em = reader.GetDateTime("postado_em");
+	[JsonIgnore] public int? PostadoPor { get; set; }
 
-            Post? post = new Post(id, titulo, texto, postado_por, postado_em);
+	public string? Titulo { get; set; }
+	public string? Texto { get; set; }
+	public DateTime? PostadoEm { get; set; }
+	#endregion Propriedades
 
-            return post;
-        }
 
-        public static Post? BuscarPorId(int id)
-        {
-            return tabela.BuscarPorId(id);
-        }
+	#region Métodos
+	public static Post? extrairObjetoDoReader(NpgsqlDataReader reader)
 
-        public static List<Post?>? BuscarTodos()
-        {
-            return tabela.BuscarTodos();
-        }
+	{
+		int? id = reader.GetInt32("id");
+		var titulo = reader.GetString("titulo");
+		var texto = reader.GetString("texto");
+		int? postado_por = reader.GetInt32("postado_por");
+		DateTime? postado_em = reader.GetDateTime("postado_em");
 
-        public int? Postar(Usuario UsuarioLogado)
-        {
-            return Postar(Texto, Titulo, UsuarioLogado);
-        }
+		var post = new Post(id, titulo, texto, postado_por, postado_em);
 
-        public static int? Postar(string? texto, string? titulo, Usuario? UsuarioLogado)
-        {
-            if (UsuarioLogado == null || UsuarioLogado?.Id == null)
-            {
-                throw new Exception("O usuário deve estar logado para poder postar.");
-            }
+		return post;
+	}
+	
+	public int? Postar(Usuario UsuarioLogado)
+	{
+		return Postar(Texto, Titulo, UsuarioLogado);
+	}
 
-            if (titulo == null)
-            {
-                throw new Exception("As propriedades 'tipo' e 'título' devem estar preenchidas para poder postar.");
-            }
+	public static int? Postar(string? texto, string? titulo, Usuario? UsuarioLogado)
+	{
+		if (UsuarioLogado == null || UsuarioLogado?.Id == null)
+			throw new Exception("O usuário deve estar logado para poder postar.");
 
-            try
-            {
-                NpgsqlParameter _texto = new NpgsqlParameter("texto", texto);
-                NpgsqlParameter _titulo = new NpgsqlParameter("titulo", titulo);
-                NpgsqlParameter _postado_por = new NpgsqlParameter("@postado_por", UsuarioLogado.Id);
-                List<NpgsqlParameter> parametros = [_texto, _titulo, _postado_por];
+		if (titulo == null)
+			throw new Exception("As propriedades 'tipo' e 'título' devem estar preenchidas para poder postar.");
 
-                string comando = string.Concat("SELECT postar(@titulo, @texto, @postado_por)");
+		try
+		{
+			// FIXME: arrumar
+			
+			/*var _texto = new NpgsqlParameter("texto", texto);
+			var _titulo = new NpgsqlParameter("titulo", titulo);
+			var _postado_por = new NpgsqlParameter("@postado_por", UsuarioLogado.Id);
+			List<NpgsqlParameter> parametros = [_texto, _titulo, _postado_por];
 
-                int? resultado = tabela.conexao.ExecutarUnico<int>(comando, parametros);
-                return resultado;
-            }
+			var comando = string.Concat("SELECT postar(@titulo, @texto, @postado_por)");
 
-            catch (Exception err)
-            {
-                Console.WriteLine(err.Message);
-                return null;
-            }
-        }
-        #endregion Métodos
-    }
+			int? resultado = tabela.conexao.ExecutarUnico<int>(comando, parametros);
+			return resultado;*/
+
+			return 0;
+		}
+
+		catch (Exception err)
+		{
+			Console.WriteLine(err.Message);
+			return null;
+		}
+	}
+	#endregion Métodos
 }

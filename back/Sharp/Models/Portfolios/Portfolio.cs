@@ -1,86 +1,83 @@
 ﻿using Newtonsoft.Json;
-using Sharp.Models.Usuarios;
-using Sharp.Models.Bancos.Tabelas;
 using Npgsql;
+using Sharp.Models.Bancos;
 using Sharp.Models.Projetos;
-using Sharp.Models.Projetos.TiposDeProjetos;
+using Sharp.Models.Session;
+using Sharp.Models.Usuarios;
 
-namespace Sharp.Models.Portfolios
+namespace Sharp.Models.Portfolios;
+
+public class Portfolio
 {
-    public class Portfolio
-    {
-        #region Propriedades  
-        [JsonIgnore] public static TabelaComTipo<Portfolio> Tabela = new TabelaComTipo<Portfolio>("portfolio");
-        [JsonIgnore] UsuarioLogavel UsuarioLogavel { get; set; }
-
-        public string? Id { get; set; }
-        public string? Descricao { get; set; } = string.Empty;
-
-        FabricaDeProjetos fabrica = new FabricaDeProjetos();
-        #endregion Propriedades  
+	#region Construtores
+	public Portfolio(UsuarioAtual usuarioAtual)
+	{
+		UsuarioAtual = usuarioAtual;
+	}
+	#endregion Construtores
 
 
-        #region Construtores  
-        public Portfolio(UsuarioLogavel usuarioLogavel)
-        {
-            UsuarioLogavel = usuarioLogavel;
-        }
-        #endregion Construtores  
+	#region Propriedades
+	[JsonIgnore] private ConexaoBanco conexaoBanco => new ConexaoBanco();
+	[JsonIgnore] private UsuarioAtual UsuarioAtual { get; }
+
+	public string? Id { get; set; }
+	public string? Descricao { get; set; } = string.Empty;
+
+	private readonly FabricaDeProjetos fabrica = new();
+	#endregion Propriedades
 
 
-        #region Métodos
-        protected List<dynamic> BuscarInfoProjetosDoBanco()
-        {
-            try
-            {
-                NpgsqlParameter paramIdUsuario = new NpgsqlParameter("@param_id_usuario", UsuarioLogavel.Id);
-                string nomeFuncao = "buscar_projetos_usuario";
+	#region Métodos
+	protected List<dynamic> BuscarInfoProjetosDoBanco()
+	{
+		try
+		{
+			var paramIdUsuario = new NpgsqlParameter("@param_id_usuario", UsuarioAtual.Id);
+			var nomeFuncao = "buscar_projetos_usuario";
 
-                List<dynamic> projetos = BaseProjeto.Tabela.conexao.ExecutarFunction<dynamic>(nomeFuncao, [paramIdUsuario]) ?? [];
+			List<dynamic> projetos =
+				conexaoBanco.ExecutarFunction<dynamic>(nomeFuncao, [paramIdUsuario]) ?? [];
 
-                return projetos;
-            }
+			return projetos;
+		}
 
-            catch (Exception err)
-            {
-                throw new Exception(err.Message);
-            }
-        }
+		catch (Exception err)
+		{
+			throw new Exception(err.Message);
+		}
+	}
 
-        protected List<BaseProjeto> ConverterListaDynamicParaProjeto(List<dynamic> listaProjetosDynamic)
-        {
-            List<BaseProjeto> projetosFinalizados = new List<BaseProjeto>();
-            foreach (dynamic projetoDynamic in listaProjetosDynamic)
-            {
-                BaseProjeto? projeto = fabrica.CriarECarregarDadosProjeto(projetoDynamic);
-                if (projeto != null)
-                {
-                    projetosFinalizados.Add(projeto);
-                }
-            }
+	protected List<BaseProjeto> ConverterListaDynamicParaProjeto(List<dynamic> listaProjetosDynamic)
+	{
+		var projetosFinalizados = new List<BaseProjeto>();
+		foreach (var projetoDynamic in listaProjetosDynamic)
+		{
+			BaseProjeto? projeto = fabrica.CriarECarregarDadosProjeto(projetoDynamic);
+			if (projeto != null) projetosFinalizados.Add(projeto);
+		}
 
-            return projetosFinalizados;
-        }
+		return projetosFinalizados;
+	}
 
-        public List<BaseProjeto> BuscarProjetos()
-        {
-            try
-            {
-                List<dynamic>? projetosEncontrados = BuscarInfoProjetosDoBanco();
+	public List<BaseProjeto> BuscarProjetos()
+	{
+		try
+		{
+			var projetosEncontrados = BuscarInfoProjetosDoBanco();
 
-                List<BaseProjeto> projetosFinalizados = ConverterListaDynamicParaProjeto(projetosEncontrados);
-                projetosEncontrados.Clear();
+			var projetosFinalizados = ConverterListaDynamicParaProjeto(projetosEncontrados);
+			projetosEncontrados.Clear();
 
-                projetosFinalizados.ForEach(p => p.BuscarTodasAsInformacoes());
+			projetosFinalizados.ForEach(p => p.BuscarTodasAsInformacoes());
 
-                return projetosFinalizados;
-            }
+			return projetosFinalizados;
+		}
 
-            catch (Exception)
-            {
-                throw new Exception("Ocorreu um problema ao buscar os projetos do usuário.");
-            }
-        }
-        #endregion Métodos  
-    }
+		catch (Exception)
+		{
+			throw new Exception("Ocorreu um problema ao buscar os projetos do usuário.");
+		}
+	}
+	#endregion Métodos
 }

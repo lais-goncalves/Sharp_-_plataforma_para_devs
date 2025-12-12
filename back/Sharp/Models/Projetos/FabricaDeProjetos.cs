@@ -1,51 +1,45 @@
-﻿using Newtonsoft.Json;
-using Sharp.Models.Projetos.TiposDeProjetos;
+﻿using Sharp.Models.Projetos.TiposDeProjetos;
 
-namespace Sharp.Models.Projetos
+namespace Sharp.Models.Projetos;
+
+public class FabricaDeProjetos
 {
-    public class FabricaDeProjetos
-    {
-        #region Métodos
-        public BaseProjeto? CriarProjeto(dynamic p)
-        {
-            try
-            {
-                BaseProjeto projeto;
-                string tipoProjeto = p["tipo"];
+	#region Métodos
+	public BaseProjeto? CriarProjeto(dynamic p)
+	{
+		try
+		{
+			BaseProjeto projeto;
+			string tipoProjeto = p["tipo"];
 
-                if (tipoProjeto == ProjetoGitHub.TipoProjeto)
-                {
-                    projeto = new ProjetoGitHub();
-                }
+			if (tipoProjeto == ProjetoGitHub.TipoProjeto)
+				projeto = new ProjetoGitHub();
 
-                else
-                {
-                    projeto = new ProjetoComum();
-                }
+			else
+				projeto = new ProjetoComum();
 
-                projeto.Id = p["id"];
-                projeto.Nome = p["nome"];
-                projeto.Tipo = p["tipo"];
-                projeto.Descricao = p["descricao"];
-                projeto.Status = p["status"];
+			projeto.Id = p["id"];
+			projeto.Nome = p["nome"];
+			projeto.Tipo = p["tipo"];
+			projeto.Descricao = p["descricao"];
+			projeto.Status = p["status"];
 
-                return projeto;
-            }
+			return projeto;
+		}
 
-            catch (Exception err)
-            {
-                Console.WriteLine(err.Message);
-                return null;
-            }
-        }
+		catch (Exception err)
+		{
+			Console.WriteLine(err.Message);
+			return null;
+		}
+	}
 
-        public BaseProjeto? CriarECarregarDadosProjeto(dynamic p)
-        {
-            BaseProjeto? projeto = CriarProjeto(p);
-            projeto?.BuscarTodasAsInformacoes();
+	public BaseProjeto? CriarECarregarDadosProjeto(dynamic p)
+	{
+		BaseProjeto? projeto = CriarProjeto(p);
+		projeto?.BuscarTodasAsInformacoes();
 
-            return projeto;
-        }
-        #endregion Métodos
-    }
+		return projeto;
+	}
+	#endregion Métodos
 }

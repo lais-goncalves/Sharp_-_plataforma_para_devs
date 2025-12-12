@@ -1,70 +1,61 @@
-﻿using System.Collections.Specialized;
-using System.Net.Http.Headers;
-using System.Web;
-using Sharp.Models.ConexoesExternas.TiposDeConexoes;
-using Sharp.Models.Portfolios.Recursos;
-using Sharp.Models.Usuarios;
+﻿using Sharp.Models.Session;
 
-namespace Sharp.Models.Projetos.TiposDeProjetos
+namespace Sharp.Models.Projetos.TiposDeProjetos;
+
+public class ProjetoGitHub : BaseProjeto
 {
-    public class ProjetoGitHub : BaseProjeto
-    {
-        #region Propriedades
-        public static string? CLIENT_ID = ConexaoGitHub.CLIENT_ID;
-        public static string? CLIENT_SECRET = ConexaoGitHub.CLIENT_SECRET;
-        public static string? urlApiGitHub = ConexaoGitHub.urlSite;
+	#region Propriedades
+	// TODO: trazer conexao aqui
 
-        public new static string TipoProjeto => "github";
-        #endregion Propriedades
+	public new static string TipoProjeto => "github";
+	#endregion Propriedades
 
 
-        #region Construtores
-        public ProjetoGitHub(string Id, string? Nome, string? Descricao, string? Status, string? Tipo = null) : base(Id, Nome, Descricao, Tipo, Status) { }
+	#region Construtores
+	public ProjetoGitHub(string id, string? nome, string? descricao, string? status, string? tipo = null) :
+		base(id, nome, descricao, tipo, status) { }
 
-        public ProjetoGitHub() : base() { }
-        #endregion Construtores
-
-
-        #region Métodos
-        public static List<ProjetoGitHub> BuscarTodosOsProjetos(UsuarioLogavel Usuario)
-        {
-            List<ProjetoGitHub> projetos = new List<ProjetoGitHub>();
-
-            ConexaoGitHub conexaoGitHub = (ConexaoGitHub)Usuario.Perfil.ConexoesDoUsuario["github"];
-            conexaoGitHub.BuscarTodasAsInfomacoes();
-            string? apelidoUsuarioGitHub = conexaoGitHub.Apelido;
+	public ProjetoGitHub() { }
+	#endregion Construtores
 
 
-            HttpClient clienteHttp = new();
-            string urlBusca = $"{urlApiGitHub}/users/{apelidoUsuarioGitHub}/repos";
-            HttpRequestMessage buscaPerfil = new(HttpMethod.Get, urlBusca);
+	// TODO: refatorar isso tudo
+	#region Métodos
+	public static List<ProjetoGitHub> BuscarTodosOsProjetos(UsuarioAtual usuario)
+	{
+		/*var projetos = new List<ProjetoGitHub>();
 
-            buscaPerfil.Headers.Add("Accept", "application/json");
-            buscaPerfil.Headers.UserAgent.ParseAdd("Sharp");
+		var conexaoGitHub = (ConexaoGitHub)usuario.Perfil.ConexoesDoUsuario["github"];
+		conexaoGitHub.BuscarTodasAsInfomacoes();
+		string? apelidoUsuarioGitHub = conexaoGitHub.Apelido;
 
-            var retornoInfoUsuario = clienteHttp.Send(buscaPerfil);
-            string? resultadoBusca = retornoInfoUsuario.Content?.ReadAsStringAsync().Result;
 
-            if (resultadoBusca == null)
-            {
-                return projetos;
-            }
+		HttpClient clienteHttp = new();
+		var urlBusca = $"{_urlApiGitHub}/users/{apelidoUsuarioGitHub}/repos";
+		HttpRequestMessage buscaPerfil = new(HttpMethod.Get, urlBusca);
 
-            NameValueCollection? objResultado = HttpUtility.ParseQueryString(resultadoBusca);
-            Console.WriteLine(objResultado.ToString());
+		buscaPerfil.Headers.Add("Accept", "application/json");
+		buscaPerfil.Headers.UserAgent.ParseAdd("Sharp");
 
-            return projetos;
-        }
+		var retornoInfoUsuario = clienteHttp.Send(buscaPerfil);
+		var resultadoBusca = retornoInfoUsuario.Content?.ReadAsStringAsync().Result;
 
-        protected override void BuscarFerramentas()
-        {
-            // TODO: continuar
-        }
+		if (resultadoBusca == null) return projetos;
 
-        protected override void BuscarDemaisInformacoes()
-        {
-            // TODO: continuar
-        }
-        #endregion Métodos
-    }
+		var objResultado = HttpUtility.ParseQueryString(resultadoBusca);
+		Console.WriteLine(objResultado.ToString());*/
+
+		return new List<ProjetoGitHub>();
+	}
+
+	protected override void BuscarFerramentas()
+	{
+		// TODO: continuar
+	}
+
+	protected override void BuscarDemaisInformacoes()
+	{
+		// TODO: continuar
+	}
+	#endregion Métodos
 }

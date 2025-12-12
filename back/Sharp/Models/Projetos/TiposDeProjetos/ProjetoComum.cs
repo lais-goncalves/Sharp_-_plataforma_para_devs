@@ -1,36 +1,30 @@
-﻿using Newtonsoft.Json;
-using Sharp.Models.Bancos.Tabelas;
-using Sharp.Models.ConexoesExternas.TiposDeConexoes;
-using Sharp.Models.Portfolios.Recursos;
-using Sharp.Models.Usuarios;
+﻿namespace Sharp.Models.Projetos.TiposDeProjetos;
 
-namespace Sharp.Models.Projetos.TiposDeProjetos
+public class ProjetoComum : BaseProjeto
 {
-    public class ProjetoComum : BaseProjeto
-    {
-        #region Construtores
-        public ProjetoComum(string Id, string? Nome, string? Descricao, string? Status, string? Tipo = null) : base(Id, Nome, Descricao, Tipo, Status) { }
+	#region Construtores
+	public ProjetoComum(string id, string? nome, string? descricao, string? status, string? tipo = null) :
+		base(id, nome, descricao, tipo, status) { }
 
-        public ProjetoComum() : base() { }
-        #endregion Construtores
+	public ProjetoComum() { }
+	#endregion Construtores
 
 
-        #region Métodos
-        protected override void BuscarFerramentas()
-        {
-            // TODO: continuar
-        }
+	#region Métodos
+	protected override void BuscarFerramentas()
+	{
+		// TODO: continuar
+	}
 
-        protected override void BuscarDemaisInformacoes()
-        {
-            // TODO: continuar
-        }
+	protected override void BuscarDemaisInformacoes()
+	{
+		// TODO: continuar
+	}
 
-        public virtual void BuscarTodasAsInformacoes()
-        {
-            BuscarDemaisInformacoes();
-            BuscarFerramentas();
-        }
-        #endregion Métodos
-    }
+	public virtual void BuscarTodasAsInformacoes()
+	{
+		BuscarDemaisInformacoes();
+		BuscarFerramentas();
+	}
+	#endregion Métodos
 }

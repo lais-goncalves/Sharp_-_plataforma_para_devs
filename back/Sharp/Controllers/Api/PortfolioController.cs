@@ -17,7 +17,7 @@ namespace Sharp.Controllers.Api
 
             try
             {
-                if (!UsuarioAtual.EstaLogado())
+                if (!UsuarioAtual.EstaLogado)
                 {
                     resultado.DefinirErro("O usuário deve estar logado.");
                     return Ok(resultado);
@@ -44,14 +44,13 @@ namespace Sharp.Controllers.Api
 
             try
             {
-                if (!UsuarioAtual.EstaLogado())
+                if (!UsuarioAtual.EstaLogado)
                 {
                     resultado.DefinirErro("O usuário deve estar logado.");
                     return Ok(resultado);
                 }
 
-                Portfolio portfolio = new Portfolio(UsuarioAtual);
-                List<ProjetoGitHub>? projetos = ProjetoGitHub.BuscarTodosOsProjetos(UsuarioAtual);
+                List<ProjetoGitHub> projetos = ProjetoGitHub.BuscarTodosOsProjetos(UsuarioAtual);
 
                 resultado.DefinirDados(projetos);
                 return Ok(resultado);

@@ -1,229 +1,124 @@
 ﻿using System.Data;
-using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using Npgsql;
-using NpgsqlTypes;
+using ConfigurationManager = System.Configuration.ConfigurationManager;
 
-namespace Sharp.Models.Bancos
+namespace Sharp.Models.Bancos;
+
+public class ConexaoBanco
 {
-    public class ConexaoBanco
-    {
-        #region Propriedades
-        private readonly string connectionString = buscarConnectionString();
-        public static readonly ConexaoBanco instancia = new ConexaoBanco();
-        #endregion Propriedades
+	#region Construtores
+	public ConexaoBanco() { }
+	#endregion Construtores
 
 
-        #region Construtores
-        private ConexaoBanco() { }
-        #endregion Construtores
+	#region Propriedades
+	private readonly string _connectionString = buscarConnectionString();
+	#endregion Propriedades
 
 
-        #region Métodos
-        #region Utils
-        private static string buscarConnectionString()
-        {
-            return System.Configuration.ConfigurationManager.ConnectionStrings["DEFAULT_CONNECTION"].ConnectionString;
-        }
+	#region Métodos
+	#region Utils
+	private static string buscarConnectionString()
+	{
+		return ConfigurationManager.ConnectionStrings["DEFAULT_CONNECTION"].ConnectionString;
+	}
 
-        private void criarListaDeParametros(NpgsqlCommand cmd, List<NpgsqlParameter>? parametros)
-        {
-            if (parametros is null)
-            {
-                return;
-            }
+	private void criarListaDeParametros(NpgsqlCommand cmd, List<NpgsqlParameter>? parametros)
+	{
+		if (parametros is null) return;
 
-            foreach (NpgsqlParameter param in parametros)
-            {
-                cmd.Parameters.Add(param);
-            }
-        }
+		foreach (var param in parametros) cmd.Parameters.Add(param);
+	}
 
-        private void fecharConexao(NpgsqlCommand? cmd, NpgsqlConnection? conn)
-        {
-            conn?.Close();
-            conn?.Dispose();
-            cmd?.Dispose();
-            cmd?.Connection?.Close();
-        }
-
-        public T? dataReaderParaJson<T>(NpgsqlDataReader dataReader)
-        {
-            DataTable dataTable = new();
-            dataTable.Load(dataReader);
-
-            var objSerializadoParaJson = JsonConvert.SerializeObject(dataTable);
-            T? objDesserializado = JsonConvert.DeserializeObject<T>(objSerializadoParaJson);
-
-            return objDesserializado;
-        }
-
-        public static T? BuscarPropriedadeDynamic<T>(dynamic? objDynamic, string nomePropriedadeBuscada)
-        {
-            T? prop = objDynamic?[nomePropriedadeBuscada];
-            return prop;
-        }
-        #endregion Utils
+	private void fecharConexao(NpgsqlCommand? cmd, NpgsqlConnection? conn)
+	{
+		conn?.Close();
+		conn?.Dispose();
+		cmd?.Dispose();
+		cmd?.Connection?.Close();
+	}
+	#endregion Utils
 
 
-        #region Procedures
-        private string? _executarProcedure(string procedure, List<NpgsqlParameter>? parametros)
-        {
-            NpgsqlConnection? conn = null;
-            NpgsqlCommand? cmd = null;
-            string? resultado = null;
+	private void configurarComando(NpgsqlCommand cmd, string comando, List<NpgsqlParameter>? parametros,
+	                               CommandType tipoComando = CommandType.StoredProcedure)
+	{
+		cmd.CommandText = comando;
+		cmd.CommandType = tipoComando;
+		criarListaDeParametros(cmd, parametros);
+	}
 
-            try
-            {
-                using (NpgsqlDataSource dataSource = NpgsqlDataSource.Create(connectionString))
-                {
-                    conn = dataSource.OpenConnection();
-                    cmd = new NpgsqlCommand(procedure, conn);
-                    cmd.CommandText = procedure;
+	private T? executarComandoGenerico<T>(string comando, List<NpgsqlParameter>? parametros, CommandType tipoComando,
+	                                      Func<NpgsqlCommand, T?> executar)
+	{
+		NpgsqlConnection? conn = null;
+		NpgsqlCommand? cmd = null;
 
-                    criarListaDeParametros(cmd, parametros);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.ExecuteNonQuery();
-                }
-            }
+		try
+		{
+			using var dataSource = NpgsqlDataSource.Create(_connectionString);
 
-            catch (Exception err)
-            {
-                Console.WriteLine(err);
-                resultado = null;
-            }
+			conn = dataSource.OpenConnection();
+			cmd = new NpgsqlCommand(comando, conn);
+			configurarComando(cmd, comando, parametros, tipoComando);
 
-            finally
-            {
-                fecharConexao(cmd, conn);
-            }
+			return executar(cmd);
+		}
+		catch (Exception err)
+		{
+			Console.WriteLine(err);
+			return default;
+		}
+		finally
+		{
+			fecharConexao(cmd, conn);
+		}
+	}
 
-            return resultado;
-        }
+	public void ExecutarProcedure(string comando, List<NpgsqlParameter>? parametros)
+	{
+		List<object>? MetodoProcedure(NpgsqlCommand cmd)
+		{
+			cmd.ExecuteNonQuery();
+			return null;
+		}
 
-        public string? ExecutarProcedure(string comando, List<NpgsqlParameter>? parametros = null)
-        {
-            try
-            {
-                return _executarProcedure(comando, parametros);
-            }
+		executarComandoGenerico<object>(comando, parametros, CommandType.StoredProcedure, MetodoProcedure);
+	}
 
-            catch (Exception err)
-            {
-                Console.WriteLine(err.Message);
-                return null;
-            }
-        }
-        #endregion Procedures
+	public List<T>? ExecutarFunction<T>(string comando, List<NpgsqlParameter>? parametros)
+	{
+		// TODO: quebrar em métodos menores
+		List<T>? MetodoFunction(NpgsqlCommand cmd)
+		{
+			List<T>? resultado = null;
 
+			NpgsqlDataReader reader = cmd.ExecuteReader();
+				
+			DataTable dataTable = new();
+			using (var adapter = new NpgsqlDataAdapter(cmd))
+			{
+				adapter.Fill(dataTable);
+			}
 
-        #region Comandos
-        private List<T>? _executarComando<T>(string comando, List<NpgsqlParameter>? parametros)
-        {
-            NpgsqlConnection? conn = null;
-            NpgsqlCommand? cmd = null;
-            NpgsqlDataReader? reader = null;
-            List<T?>? resultado = default;
+			string objSerializadoParaJson = JsonConvert.SerializeObject(dataTable);
+			resultado = JsonConvert.DeserializeObject<List<T>?>(objSerializadoParaJson);
+			
+			reader.Close();
+			return resultado;
+		}
+		
+		string nomesParametros = "";
+		if (parametros is not null)
+		{
+			List<string> listaNomesParametros = parametros.Select(p => p.ParameterName).ToList();
+			nomesParametros = string.Join(", ", listaNomesParametros);
+		}
 
-            try
-            {
-                using (NpgsqlDataSource dataSource = NpgsqlDataSource.Create(connectionString))
-                {
-                    conn = dataSource.OpenConnection();
-                    cmd = new NpgsqlCommand(comando, conn);
-                    cmd.CommandText = comando;
-
-                    criarListaDeParametros(cmd, parametros);
-
-                    reader = cmd.ExecuteReader();
-                    resultado = dataReaderParaJson<List<T>?>(reader);
-
-                    reader?.Close();
-                }
-            }
-
-            catch (Exception err)
-            {
-                Console.WriteLine(err);
-                resultado = null;
-            }
-
-            finally
-            {
-                fecharConexao(cmd, conn);
-            }
-
-            return resultado;
-        }
-
-        public List<T>? Executar<T>(string comando, List<NpgsqlParameter>? parametros = null, bool retornarRetornoAPIs = false)
-        {
-            try
-            {
-                return _executarComando<T>(comando, parametros);
-            }
-
-            catch (Exception err)
-            {
-                Console.WriteLine(err.Message);
-                return null;
-            }
-        }
-
-        public T? ExecutarUnico<T>(string comando, List<NpgsqlParameter>? parametros = null)
-        {
-            try
-            {
-                // Explicitly specify the type argument for _executarComando<T>
-                List<T?>? resultado = _executarComando<T>(comando, parametros);
-
-                if (resultado != null && resultado?.Count > 0)
-                {
-                    return resultado[0];
-                }
-
-                return default;
-            }
-
-            catch (Exception err)
-            {
-                Console.WriteLine(err.Message);
-                return default;
-            }
-        }
-
-        public List<T>? Executar<T>(string query, List<NpgsqlParameter>? parametros = null)
-        {
-            return Executar<T>(query, parametros, false);
-        }
-
-        public List<T>? ExecutarFunction<T>(string nomeFunction, List<NpgsqlParameter>? parametros = null)
-        {
-            string nomesParametros = "";
-            if (parametros is not null)
-            {
-                List<string> listaNomesParametros = parametros.Select(p => p.ParameterName).ToList();
-                nomesParametros = string.Join(", ", listaNomesParametros);
-            }
-
-            string novaQuery = string.Concat("SELECT * FROM ", nomeFunction, "(", nomesParametros, ")");
-
-            List<T>? resultado = Executar<T>(novaQuery, parametros, false);
-            return resultado;
-        }
-
-        public T? ExecutarFunctionUnica<T>(string nomeFunction, List<NpgsqlParameter>? parametros = null)
-        {
-            List<T>? resultado = ExecutarFunction<T>(nomeFunction, parametros);
-            if (resultado is null)
-            {
-                return default;
-            }
-
-            T? resultadoUnico = resultado.FirstOrDefault();
-            return resultadoUnico;
-        }
-        #endregion Comandos
-        #endregion Métodos
-    }
+		string novoComando = $"SELECT * FROM {comando}({nomesParametros})";
+		
+		return executarComandoGenerico(novoComando, parametros, CommandType.Text, MetodoFunction);
+	}
+	#endregion Métodos
 }

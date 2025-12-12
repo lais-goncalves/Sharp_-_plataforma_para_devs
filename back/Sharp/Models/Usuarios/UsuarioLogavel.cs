@@ -2,96 +2,86 @@
 using Sharp.Models.Usuarios.Perfis;
 using Sharp.Models.Usuarios.Perfis.TiposDePerfis;
 
-namespace Sharp.Models.Usuarios
+namespace Sharp.Models.Usuarios;
+
+public class UsuarioAtual : Usuario, ItemComSessao
 {
-    public class UsuarioLogavel : Usuario, ItemComSessao
-    {
-        public Perfil Perfil { get; set; }
-        public Sessao Sessao { get; protected set; }
+	public UsuarioAtual(HttpContext httpContext)
+	{
+		definirInformacoes(httpContext);
+	}
 
-        public UsuarioLogavel(HttpContext httpContext) : base()
-        {
-            definirInformacoes(httpContext);
-        }
+	public Perfil Perfil { get; set; }
+	public Sessao Sessao { get; protected set; }
 
-        private void definirInformacoes(HttpContext httpContext)
-        {
-            Sessao = new Sessao(httpContext, "UsuarioLogavel");
-            buscarUsuario();
+	private void definirInformacoes(HttpContext httpContext)
+	{
+		Sessao = new Sessao(httpContext, "UsuarioAtual");
+		buscarUsuario();
 
-            // TODO: criar verificador de perfil do usuário para definir de acordo com o que vem do bacno
-            Perfil = new PerfilDev(this);
-        }
+		// TODO: criar verificador de perfil do usuário para definir de acordo com o que vem do bacno
+		Perfil = new PerfilDev(this);
+	}
 
-        private void copiarNovoUsuario(Usuario? novoUsuario)
-        {
-            Id = novoUsuario?.Id;
-            NomeCompleto = novoUsuario?.NomeCompleto;
-            Email = novoUsuario?.Email;
-            Senha = novoUsuario?.Senha;
-            Apelido = novoUsuario?.Apelido;
-        }
+	private void copiarNovoUsuario(Usuario? novoUsuario)
+	{
+		Id = novoUsuario?.Id;
+		NomeCompleto = novoUsuario?.NomeCompleto;
+		Email = novoUsuario?.Email;
+		Senha = novoUsuario?.Senha;
+		Apelido = novoUsuario?.Apelido;
+	}
 
-        private void definirNovoUsuario(Usuario? novoUsuario)
-        {
-            Sessao.DefinirValor(novoUsuario);
-            copiarNovoUsuario(novoUsuario);
-        }
+	private void definirNovoUsuario(Usuario? novoUsuario)
+	{
+		Sessao.DefinirValor(novoUsuario);
+		copiarNovoUsuario(novoUsuario);
+	}
 
-        private Usuario? buscarUsuario()
-        {
-            Usuario? usuario = Sessao.BuscarValor<Usuario?>();
-            copiarNovoUsuario(usuario);
-            return usuario;
-        }
+	private Usuario? buscarUsuario()
+	{
+		var usuario = Sessao.BuscarValor<Usuario?>();
+		copiarNovoUsuario(usuario);
+		return usuario;
+	}
 
-        public bool EstaLogado()
-        {
-            return Id != null && Id > 0;
-        }
+	public bool EstaLogado()
+	{
+		return Id != null && Id > 0;
+	}
 
-        public Usuario? Logar(string? emailOuApelido, string? senha)
-        {
-            try
-            {
-                if (emailOuApelido is null || senha is null)
-                {
-                    return null;
-                }
+	public Usuario? Logar(string? emailOuApelido, string? senha)
+	{
+		try
+		{
+			if (emailOuApelido is null || senha is null) return null;
 
 
-                Usuario? usuario = VerificarLogin(emailOuApelido, senha);
-                definirNovoUsuario(usuario);
+			var usuario = VerificarLogin(emailOuApelido, senha);
+			definirNovoUsuario(usuario);
 
-                return usuario;
-            }
+			return usuario;
+		}
 
-            catch (Exception err)
-            {
-                Console.WriteLine(err.Message);
-                return null;
-            }
-        }
+		catch (Exception err)
+		{
+			Console.WriteLine(err.Message);
+			return null;
+		}
+	}
 
-        public Usuario? Logar(Usuario? novoUsuario)
-        {
-            if (novoUsuario is null)
-            {
-                return null;
-            }
+	public Usuario? Logar(Usuario? novoUsuario)
+	{
+		if (novoUsuario is null) return null;
 
-            string? credencial = novoUsuario.Email ?? novoUsuario.Apelido;
-            if (credencial is null)
-            {
-                return null;
-            }
+		var credencial = novoUsuario.Email ?? novoUsuario.Apelido;
+		if (credencial is null) return null;
 
-            return Logar(credencial, novoUsuario.Senha);
-        }
+		return Logar(credencial, novoUsuario.Senha);
+	}
 
-        public void Deslogar()
-        {
-            definirNovoUsuario(null);
-        }
-    }
+	public void Deslogar()
+	{
+		definirNovoUsuario(null);
+	}
 }

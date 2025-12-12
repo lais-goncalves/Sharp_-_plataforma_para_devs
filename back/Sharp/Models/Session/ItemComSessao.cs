@@ -1,7 +1,9 @@
-﻿namespace Sharp.Models.Session
+﻿namespace Sharp.Models.Session;
+
+public interface ItemComSessao
 {
-    public interface ItemComSessao
-    {
-       Sessao Sessao { get; }
-    }
+	#region Propriedades
+	Sessao Sessao { get; }
+	string RotuloItem { get; }
+	#endregion Propriedades
 }
