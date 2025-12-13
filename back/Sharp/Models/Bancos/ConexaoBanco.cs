@@ -1,8 +1,6 @@
 ﻿using System.Data;
-using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using Npgsql;
-using NpgsqlTypes;
 
 namespace Sharp.Models.Bancos
 {

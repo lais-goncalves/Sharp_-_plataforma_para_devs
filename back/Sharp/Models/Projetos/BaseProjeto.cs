@@ -23,7 +23,8 @@ namespace Sharp.Models.Projetos
         public string? Nome { get; set; }
         public string? Descricao { get; set; }
         public string? Status { get; set; }
-        public List<Recurso>? Ferramentas { get; set; }
+        public int? Estrelas { get; set; } = 5;
+        public string[] Tecnologias { get; set; } = ["C#", "React.js", ".NET", "JavaScript", "PostgreSQL"];
         #endregion Propriedades  
 
         #region Construtores  

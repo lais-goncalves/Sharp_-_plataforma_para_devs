@@ -14,6 +14,10 @@ namespace Sharp.Models.Projetos.TiposDeProjetos
         public static string? CLIENT_ID = ConexaoGitHub.CLIENT_ID;
         public static string? CLIENT_SECRET = ConexaoGitHub.CLIENT_SECRET;
         public static string? urlApiGitHub = ConexaoGitHub.urlSite;
+        
+        public string? LinkGitHub { get; set; }
+        public string? LinkDemo { get; set; }
+        
 
         public new static string TipoProjeto => "github";
         #endregion Propriedades

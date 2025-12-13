@@ -23,8 +23,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy(politicaCors, builder => {
         builder.WithOrigins("https://github.com").AllowAnyMethod().AllowAnyHeader();
         builder.WithOrigins("https://api.github.com").AllowAnyMethod().AllowAnyHeader();
-        builder.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
-        builder.WithOrigins("https://localhost:3000").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+        builder.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+        builder.WithOrigins("https://localhost:5173").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+        builder.WithOrigins("http://localhost:5174").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+        builder.WithOrigins("https://localhost:5174").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
     });
 });
 

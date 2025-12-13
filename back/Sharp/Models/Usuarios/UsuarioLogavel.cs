@@ -30,6 +30,9 @@ namespace Sharp.Models.Usuarios
             Email = novoUsuario?.Email;
             Senha = novoUsuario?.Senha;
             Apelido = novoUsuario?.Apelido;
+            Seguidores = novoUsuario?.Seguidores;
+            Seguindo = novoUsuario?.Seguindo;
+            Localizacao = novoUsuario?.Localizacao;
         }
 
         private void definirNovoUsuario(Usuario? novoUsuario)

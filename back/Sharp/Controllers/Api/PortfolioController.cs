@@ -33,7 +33,7 @@ namespace Sharp.Controllers.Api
             catch (Exception ex)
             {
                 resultado.DefinirErro(ex);
-                return BadRequest(resultado);
+                return Ok(resultado);
             }
         }
 
@@ -60,7 +60,7 @@ namespace Sharp.Controllers.Api
             catch (Exception ex)
             {
                 resultado.DefinirErro(ex);
-                return BadRequest(resultado);
+                return Ok(resultado);
             }
         }
     }

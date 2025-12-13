@@ -36,13 +36,15 @@ namespace Sharp.Controllers.Autenticacao.AutenticacoesDev
                 resultado = new RetornoAPI<UsuarioLogavel?>();
                 resultado.DefinirErro(err);
 
-                return BadRequest(resultado);
+                return Ok(resultado);
             }
         }
 
         [HttpGet]
-        public void LogarComGitHub()
+        public ActionResult LogarComGitHub()
         {
+            RetornoAPI<string?> resultado = new();
+            
             try
             {
                 if (UsuarioAtual.EstaLogado())
@@ -51,7 +53,7 @@ namespace Sharp.Controllers.Autenticacao.AutenticacoesDev
                     string? idGitHub = ContaGitHub?.IdLogin;
                     if (idGitHub != null)
                     {
-                        return; 
+                        return Ok(); 
                     }
                 }
 
@@ -63,12 +65,16 @@ namespace Sharp.Controllers.Autenticacao.AutenticacoesDev
 
                 // redirecionar para API do GitHub para que possa ser cadastrado
                 string urlLogin = ConexaoGitHub.BuscarURLLogin();
-                Response.Redirect(urlLogin);
+                resultado.DefinirDados(urlLogin);
+                
+                return Ok(resultado);
             }
 
             catch (Exception err) 
             {
                 Console.WriteLine(err.Message);
+                resultado.DefinirErro(err);
+                return BadRequest(resultado);
             }
         }
     }

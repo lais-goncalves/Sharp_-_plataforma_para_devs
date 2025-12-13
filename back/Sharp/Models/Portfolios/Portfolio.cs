@@ -1,3 +1,9 @@
+﻿using Newtonsoft.Json;
+using Npgsql;
+using Sharp.Models.Bancos.Tabelas;
+using Sharp.Models.Projetos;
+using Sharp.Models.Usuarios;
+
 namespace Sharp.Models.Portfolios
 {
     public class Portfolio

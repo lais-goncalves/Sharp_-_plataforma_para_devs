@@ -24,7 +24,7 @@ namespace Sharp.Controllers.Autenticacao
             catch (Exception err)
             {
                 resultado.DefinirErro(err);
-                return Unauthorized(resultado);
+                return Ok(resultado);
             }
         }
 
@@ -48,7 +48,7 @@ namespace Sharp.Controllers.Autenticacao
             catch (Exception err)
             {
                 retorno.DefinirErro(err);
-                return BadRequest(retorno);
+                return Ok(retorno);
             }
         }
 
@@ -73,7 +73,7 @@ namespace Sharp.Controllers.Autenticacao
             catch (Exception err)
             {
                 resultado.DefinirErro(err);
-                return Unauthorized(resultado);
+                return Ok(resultado);
             }
         }
 
@@ -159,7 +159,7 @@ namespace Sharp.Controllers.Autenticacao
         //    catch (Exception err)
         //    {
         //        resultado.DefinirErro(err);
-        //        return BadRequest(resultado);
+        //        return Ok(resultado);
         //    }
         //}
 
@@ -177,7 +177,7 @@ namespace Sharp.Controllers.Autenticacao
             catch (Exception err)
             {
                 resultado.DefinirErro(err);
-                return BadRequest(resultado);
+                return Ok(resultado);
             }
         }
     }

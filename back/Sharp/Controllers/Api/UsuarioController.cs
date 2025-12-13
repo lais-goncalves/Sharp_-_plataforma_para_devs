@@ -24,7 +24,7 @@ namespace Sharp.Controllers.Api
             catch (Exception err)
             {
                 resultado.DefinirErro(err);
-                return BadRequest(resultado);
+                return Ok(resultado);
             }
         }
 
@@ -44,7 +44,7 @@ namespace Sharp.Controllers.Api
             catch (Exception err)
             {
                 resultado.DefinirErro(err);
-                return BadRequest(resultado);
+                return Ok(resultado);
             }
         }
     }

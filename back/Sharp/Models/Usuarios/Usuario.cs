@@ -10,12 +10,14 @@ namespace Sharp.Models.Usuarios
         public static TabelaComTipo<Usuario> Tabela => new ("usuario");
 
         // Propriedades que não são enviadas ao front
-        [JsonIgnore]
         public int? Id { get; set; }
         [JsonIgnore]
         public string? Email { get; set; }
         [JsonIgnore]
         public string? Senha { get; set; }
+        public int? Seguidores { get; set; }
+        public int? Seguindo { get; set; }
+        public string? Localizacao { get; set; }
 
         // Propriedades que são enviadas ao front
         [Newtonsoft.Json.JsonProperty("nome_completo")]
@@ -27,7 +29,7 @@ namespace Sharp.Models.Usuarios
 
 
         #region Construtores
-        public Usuario(int? id, string? nomeCompleto, string? email, string? apelido, string? senha, string? tipoPerfil)
+        public Usuario(int? id, string? nomeCompleto, string? email, string? apelido, string? senha, string? tipoPerfil, int? seguidores, int? seguindo, string? localizacao)
         {
             Id = id;
             NomeCompleto = nomeCompleto;
